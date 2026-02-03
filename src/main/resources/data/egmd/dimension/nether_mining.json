@@ -1,0 +1,25 @@
+{
+  "type": "egmd:nether_mining_type",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "layers": [
+        {
+          "block": "minecraft:bedrock",
+          "height": 1
+        },
+        {
+          "block": "minecraft:netherrack",
+          "height": 64
+        },
+        {
+          "block": "minecraft:netherrack",
+          "height": 64
+        }
+      ],
+      "biome": "egmd:nether_mining_wastes",
+      "features": true,
+      "lakes": false
+    }
+  }
+}

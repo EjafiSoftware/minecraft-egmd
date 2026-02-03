@@ -1,0 +1,20 @@
+{
+  "itemGroup.egmd": "Ejafi Games Mining Dimensions",
+  "block.egmd.mining_portal": "Mining Portal",
+  "block.egmd.nether_mining_portal": "Nether Mining Portal",
+  "block.egmd.end_mining_portal": "End Mining Portal",
+  "block.egmd.pearl_block": "Pearl Block",
+  "biome.egmd.mining_plains": "Mining Plains",
+  "biome.egmd.nether_mining_wastes": "Nether Mining Wastes",
+  "biome.egmd.end_mining_wastes": "End Mining Wastes",
+
+  "command.egmd.regenerate.failure.not_egmd": "Only EGMD dimensions can be regenerated with this command.",
+  "command.egmd.regenerate.failure.no_overworld": "Could not find overworld to teleport players.",
+  "command.egmd.regenerate.success.evacuated": "Players have been evacuated from %s.",
+  "command.egmd.regenerate.success.instructions.title": "To complete regeneration:",
+  "command.egmd.regenerate.success.instructions.step1": "1. Stop the server.",
+  "command.egmd.regenerate.success.instructions.step2": "2. Delete the folder: %s",
+  "command.egmd.regenerate.success.instructions.step3": "3. Restart the server.",
+  "command.egmd.regenerate.player_moved": "The dimension is being regenerated. You have been moved to the Overworld.",
+  "command.egmd.regenerate.error": "Error: %s"
+}

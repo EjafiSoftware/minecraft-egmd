@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "egmd:block/pearl_block"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "egmd:block/end_mining_portal_ns"
+    },
+    "axis=z": {
+      "model": "egmd:block/end_mining_portal_ew"
+    }
+  }
+}
