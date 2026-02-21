@@ -33,7 +33,9 @@ public class ModBlocks {
                     .noLootTable()
                     .pushReaction(PushReaction.BLOCK),
                     ModDimensions.OVERWORLD_MINING_LEVEL_KEY,
-                    Blocks.COBBLESTONE));
+                    Blocks.COBBLESTONE,
+                    ModPoiTypes.MINING_PORTAL,
+                    ModDimensions.OVERWORLD_MINING_SURFACE_Y));
 
     /**
      * Nether Mining Portal - Framed with Netherrack.
@@ -48,7 +50,9 @@ public class ModBlocks {
                     .noLootTable()
                     .pushReaction(PushReaction.BLOCK),
                     ModDimensions.NETHER_MINING_LEVEL_KEY,
-                    Blocks.NETHERRACK));
+                    Blocks.NETHERRACK,
+                    ModPoiTypes.NETHER_MINING_PORTAL,
+                    ModDimensions.NETHER_MINING_SURFACE_Y));
 
     /**
      * End Mining Portal - Framed with End Stone.
@@ -63,7 +67,9 @@ public class ModBlocks {
                     .noLootTable()
                     .pushReaction(PushReaction.BLOCK),
                     ModDimensions.END_MINING_LEVEL_KEY,
-                    Blocks.END_STONE));
+                    Blocks.END_STONE,
+                    ModPoiTypes.END_MINING_PORTAL,
+                    ModDimensions.END_MINING_SURFACE_Y));
 
     public static final DeferredBlock<Block> PEARL_BLOCK = BLOCKS.register("pearl_block",
             () -> new Block(BlockBehaviour.Properties.of()

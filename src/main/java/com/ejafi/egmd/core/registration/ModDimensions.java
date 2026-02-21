@@ -10,6 +10,8 @@ import net.minecraft.world.level.dimension.LevelStem;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.Set;
+
 /**
  * Handles resource keys and registration for EGMD dimensions.
  */
@@ -44,6 +46,17 @@ public class ModDimensions {
             ResourceLocation.fromNamespaceAndPath(EGMD.MODID, "end_mining_type"));
     public static final ResourceKey<LevelStem> END_MINING_STEM_KEY = ResourceKey.create(Registries.LEVEL_STEM,
             ResourceLocation.fromNamespaceAndPath(EGMD.MODID, "end_mining_stem"));
+
+    // Surface Y for each flat mining dimension = min_y + sum of layer heights
+    // overworld: min_y(-64) + bedrock(1)+deepslate(64)+stone(64)+dirt(2)+grass(1) = -64+132 = 68
+    public static final int OVERWORLD_MINING_SURFACE_Y = 68;
+    // nether: min_y(0) + bedrock(1)+netherrack(64)+netherrack(64) = 0+129 = 129
+    public static final int NETHER_MINING_SURFACE_Y = 129;
+    // end: min_y(0) + bedrock(1)+end_stone(64) = 0+65 = 65
+    public static final int END_MINING_SURFACE_Y = 65;
+
+    public static final Set<ResourceKey<Level>> ALL_MINING_DIMENSIONS = Set.of(
+            OVERWORLD_MINING_LEVEL_KEY, NETHER_MINING_LEVEL_KEY, END_MINING_LEVEL_KEY);
 
     public static void register(IEventBus eventBus) {
         DIMENSION_TYPE_REGISTRY.register(eventBus);

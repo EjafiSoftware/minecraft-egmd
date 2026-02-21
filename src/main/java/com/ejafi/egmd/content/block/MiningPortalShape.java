@@ -16,6 +16,7 @@ public class MiningPortalShape {
     public static final int MAX_WIDTH = 21;
     public static final int MIN_HEIGHT = 3;
     public static final int MAX_HEIGHT = 21;
+    public static final int PLATFORM_DEPTH = 3;
 
     private final LevelAccessor level;
     private final Axis axis;

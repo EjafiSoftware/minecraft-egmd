@@ -4,6 +4,7 @@ import com.ejafi.egmd.core.config.ModConfig;
 import com.ejafi.egmd.core.registration.ModBlocks;
 import com.ejafi.egmd.core.registration.ModDimensions;
 import com.ejafi.egmd.core.registration.ModItems;
+import com.ejafi.egmd.core.registration.ModPoiTypes;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -27,6 +28,7 @@ public class EGMD {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModDimensions.register(modEventBus);
+        ModPoiTypes.register(modEventBus);
 
         // Register config
         modContainer.registerConfig(Type.COMMON, ModConfig.SPEC);
