@@ -14,18 +14,22 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Handles the ignition of mining portals when using specific items on frame blocks.
  */
 @EventBusSubscriber(modid = EGMD.MODID)
 public class PortalIgnitionHandler {
-    /** Populated by each {@link MiningPortalBlock} constructor; maps frame block → portal block. */
-    static final Map<Block, MiningPortalBlock> FRAME_TO_PORTAL = new HashMap<>();
+    private static final AtomicReference<Map<Block, MiningPortalBlock>> frameToPortal = new AtomicReference<>(Map.of());
 
-    private PortalIgnitionHandler() { }
+    private PortalIgnitionHandler() {}
+
+    /** Called from {@link EGMD#commonSetup} after all blocks are resolved. */
+    public static void initFrameMap(Map<Block, MiningPortalBlock> map) {
+        frameToPortal.set(Map.copyOf(map));
+    }
 
     /**
      * Listens for right-click events on blocks to trigger portal creation.
@@ -42,7 +46,7 @@ public class PortalIgnitionHandler {
         BlockState state = level.getBlockState(pos);
         Player player = event.getEntity();
 
-        MiningPortalBlock portalBlock = FRAME_TO_PORTAL.get(state.getBlock());
+        MiningPortalBlock portalBlock = frameToPortal.get().get(state.getBlock());
         if (portalBlock != null) {
             BlockPos portalPos = pos.relative(event.getFace());
             if (level.getBlockState(portalPos).isAir() && trySpawnPortal(level, portalPos, portalBlock, portalBlock.getFrameBlock())) {

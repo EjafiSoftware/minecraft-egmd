@@ -3,6 +3,7 @@ package com.ejafi.egmd.content.command;
 import com.ejafi.egmd.EGMD;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.DimensionArgument;
@@ -23,6 +24,9 @@ import java.util.List;
  */
 @EventBusSubscriber(modid = EGMD.MODID)
 public class ModCommands {
+    private ModCommands() {
+        /* This utility class should not be instantiated */
+    }
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -43,56 +47,46 @@ public class ModCommands {
     /**
      * Evacuates players from a mining dimension and provides instructions for manual regeneration.
      */
-    private static int regenerateDimension(CommandContext<CommandSourceStack> context) {
-        try {
-            ServerLevel targetLevel = DimensionArgument.getDimension(context, "dimension");
-            ResourceKey<Level> dimensionKey = targetLevel.dimension();
+    private static int regenerateDimension(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel targetLevel = DimensionArgument.getDimension(context, "dimension");
+        ResourceKey<Level> dimensionKey = targetLevel.dimension();
 
-            // Only allow regeneration of dimensions within the egmd namespace
-            if (!dimensionKey.location().getNamespace().equals(EGMD.MODID)) {
-                context.getSource().sendFailure(Component.translatable("command.egmd.regenerate.failure.not_egmd"));
-                return 0;
-            }
-
-            ServerLevel overworld = context.getSource().getServer().getLevel(Level.OVERWORLD);
-            if (overworld == null) {
-                context.getSource().sendFailure(Component.translatable("command.egmd.regenerate.failure.no_overworld"));
-                return 0;
-            }
-
-            // 1. Evacuate all players from the target dimension
-            List<ServerPlayer> playersInDim = List.copyOf(targetLevel.players());
-            EGMD.LOGGER.info("Evacuating {} players from {}", playersInDim.size(), dimensionKey.location());
-            
-            for (ServerPlayer player : playersInDim) {
-                player.setPortalCooldown();
-                // Teleport to Overworld spawn with centering offset
-                BlockPos spawnPos = overworld.getSharedSpawnPos();
-                player.teleportTo(overworld, 
-                    spawnPos.getX() + 0.5, 
-                    spawnPos.getY(), 
-                    spawnPos.getZ() + 0.5, 
-                    player.getYRot(), 
-                    player.getXRot()
-                );
-                player.sendSystemMessage(Component.translatable("command.egmd.regenerate.player_moved"));
-            }
-
-            // 2. Advise the user on manual steps
-            // Direct folder deletion while running is unsafe, so we provide clear manual instructions.
-            String folderPath = "world/dimensions/" + dimensionKey.location().getNamespace() + "/" + dimensionKey.location().getPath();
-            
-            context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.evacuated", dimensionKey.location().toString()), true);
-            context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.title"), true);
-            context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step1"), true);
-            context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step2", folderPath), true);
-            context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step3"), true);
-
-            return 1;
-        } catch (Exception e) {
-            context.getSource().sendFailure(Component.translatable("command.egmd.regenerate.error", e.getMessage()));
-            EGMD.LOGGER.error("Failed to execute regenerate command", e);
+        if (!dimensionKey.location().getNamespace().equals(EGMD.MODID)) {
+            context.getSource().sendFailure(Component.translatable("command.egmd.regenerate.failure.not_egmd"));
             return 0;
         }
+
+        ServerLevel overworld = context.getSource().getServer().getLevel(Level.OVERWORLD);
+        if (overworld == null) {
+            context.getSource().sendFailure(Component.translatable("command.egmd.regenerate.failure.no_overworld"));
+            return 0;
+        }
+
+        List<ServerPlayer> playersInDim = List.copyOf(targetLevel.players());
+        EGMD.LOGGER.info("Evacuating {} players from {}", playersInDim.size(), dimensionKey.location());
+
+        for (ServerPlayer player : playersInDim) {
+            player.setPortalCooldown();
+            BlockPos spawnPos = overworld.getSharedSpawnPos();
+            player.teleportTo(overworld,
+                spawnPos.getX() + 0.5,
+                spawnPos.getY(),
+                spawnPos.getZ() + 0.5,
+                player.getYRot(),
+                player.getXRot()
+            );
+            player.sendSystemMessage(Component.translatable("command.egmd.regenerate.player_moved"));
+        }
+
+        // Direct folder deletion while running is unsafe, so we provide clear manual instructions.
+        String folderPath = "world/dimensions/" + dimensionKey.location().getNamespace() + "/" + dimensionKey.location().getPath();
+
+        context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.evacuated", dimensionKey.location().toString()), true);
+        context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.title"), true);
+        context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step1"), true);
+        context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step2", folderPath), true);
+        context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.step3"), true);
+
+        return 1;
     }
 }

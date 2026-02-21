@@ -2,6 +2,8 @@ package com.ejafi.egmd.client;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.core.registration.ModBlocks;
+import com.ejafi.egmd.core.registration.PortalVariant;
+import com.ejafi.egmd.core.registration.PortalVariants;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -17,7 +19,6 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 @Mod(value = EGMD.MODID, dist = Dist.CLIENT)
 public class EGMDClient {
     public EGMDClient(ModContainer container, IEventBus modEventBus) {
-        // Register the config screen factory
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
 
         modEventBus.addListener(this::onClientSetup);
@@ -29,9 +30,10 @@ public class EGMDClient {
     }
 
     private void registerBlockColors(RegisterColorHandlersEvent.Block event) {
-        // Apply tints to portal blocks
-        event.register((state, level, pos, tintIndex) -> 0x00FF00, ModBlocks.MINING_PORTAL.get());
-        event.register((state, level, pos, tintIndex) -> 0xFF0000, ModBlocks.NETHER_MINING_PORTAL.get());
-        event.register((state, level, pos, tintIndex) -> 0xFFFF00, ModBlocks.END_MINING_PORTAL.get());
+        for (PortalVariant v : PortalVariants.ALL) {
+            int tint = v.tintColor();
+            event.register((state, level, pos, tintIndex) -> tint,
+                    ModBlocks.PORTAL_BLOCKS.get(v).get());
+        }
     }
 }
