@@ -1,15 +1,15 @@
 package com.ejafi.egmd.content.block;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.ejafi.egmd.core.registration.ModBlocks;
 import com.ejafi.egmd.core.registration.PortalVariants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MiningPortalShapeTest {
     private static final BlockPos INTERIOR_BOTTOM_LEFT = new BlockPos(0, 100, 0);

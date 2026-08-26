@@ -5,6 +5,7 @@ import com.ejafi.egmd.core.config.ModConfig;
 import com.ejafi.egmd.core.registration.ModBlocks;
 import com.ejafi.egmd.core.registration.ModDimensions;
 import com.ejafi.egmd.core.registration.ModItems;
+import com.ejafi.egmd.core.registration.ModParticles;
 import com.ejafi.egmd.core.registration.ModPoiTypes;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -32,6 +33,7 @@ public class EGMD {
         ModItems.register(modEventBus);
         ModDimensions.register(modEventBus);
         ModPoiTypes.register(modEventBus);
+        ModParticles.register(modEventBus);
 
         modContainer.registerConfig(Type.COMMON, ModConfig.SPEC);
     }

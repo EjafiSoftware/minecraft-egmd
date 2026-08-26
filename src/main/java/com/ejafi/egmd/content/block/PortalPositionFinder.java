@@ -1,11 +1,10 @@
 package com.ejafi.egmd.content.block;
 
 import com.ejafi.egmd.core.registration.ModDimensions;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Orchestrates a chain of {@link PortalSearchStrategy} instances to find a suitable

@@ -1,11 +1,11 @@
 package com.ejafi.egmd.content.block;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PortalExitPlacementTest {
 

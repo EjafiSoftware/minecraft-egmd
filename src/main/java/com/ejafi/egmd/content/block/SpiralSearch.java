@@ -1,12 +1,11 @@
 package com.ejafi.egmd.content.block;
 
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.levelgen.Heightmap;
-
-import java.util.Optional;
 
 /**
  * Searches for a portal placement position by spiraling outward from the target XZ,

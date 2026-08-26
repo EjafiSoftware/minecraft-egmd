@@ -1,10 +1,9 @@
 package com.ejafi.egmd.content.block;
 
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.levelgen.Heightmap;
-
-import java.util.Optional;
 
 /**
  * Last-resort search: scans straight down from the surface at the center XZ and returns

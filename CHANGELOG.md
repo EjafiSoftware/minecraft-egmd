@@ -2,6 +2,8 @@
 
 ## [1.2.0]
 
+**Note**: License changed from All Rights Reserved to MIT.  I meant to do that before I released it, but I forgot.
+
 ### Fixed
 - Teleporting now finds existing destination portals even when their chunks are unloaded, instead of building a duplicate portal nearby
 - Portal search in the Nether Mining dimension now accounts for its 8x coordinate compression, so portals no longer link to far-away portals
@@ -13,6 +15,7 @@
 - The config screen now shows a proper name and tooltip for the portal search radius
 
 ### Changed
+- The mod now accepts any NeoForge 21.1.x version instead of requiring the exact build it was compiled against
 - Portals now use the vanilla stand-in delay (about 4 seconds in survival, governed by the same game rules as Nether portals) and show the vanilla portal overlay, instead of teleporting instantly
 - Portal blocks no longer have inventory items, matching vanilla portals; portal items already in inventories or containers will disappear
 - Auto-built X-axis portals are no longer mirrored, and arriving entities now spawn centered in front of the portal instead of beside it
@@ -21,6 +24,7 @@
 
 ### Added
 - Support for Create: Unbreakable series ([Curse](https://www.curseforge.com/minecraft/mc-mods/create-unbreakable-netherite-tools-series))
+- Portals now play ambient portal sounds and emit particles tinted to match each portal variant
 
 ## [1.1.0]
 

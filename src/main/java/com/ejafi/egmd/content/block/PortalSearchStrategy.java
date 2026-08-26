@@ -1,10 +1,9 @@
 package com.ejafi.egmd.content.block;
 
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.Optional;
 
 /**
  * Strategy for locating a candidate {@link BlockPos} in which a portal can be placed.

@@ -2,17 +2,16 @@ package com.ejafi.egmd.core.registration;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.content.block.MiningPortalBlock;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 
 public class ModPoiTypes {
     private ModPoiTypes() {

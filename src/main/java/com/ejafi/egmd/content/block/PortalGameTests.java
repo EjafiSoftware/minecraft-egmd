@@ -3,6 +3,7 @@ package com.ejafi.egmd.content.block;
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.core.registration.ModBlocks;
 import com.ejafi.egmd.core.registration.PortalVariants;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -22,8 +23,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.Optional;
 
 /**
  * In-world integration tests for the portal machinery that unit tests cannot cover.

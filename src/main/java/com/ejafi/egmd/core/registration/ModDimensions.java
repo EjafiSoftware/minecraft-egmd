@@ -1,6 +1,7 @@
 package com.ejafi.egmd.core.registration;
 
 import com.ejafi.egmd.EGMD;
+import java.util.Set;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -9,8 +10,6 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.Set;
 
 /**
  * Handles resource keys and registration for EGMD dimensions.

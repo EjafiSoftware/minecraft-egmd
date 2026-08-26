@@ -2,6 +2,8 @@ package com.ejafi.egmd.content.block;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.core.registration.ModBlocks;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.registries.Registries;
@@ -19,9 +21,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Handles the ignition of mining portals when using specific items on frame blocks.
