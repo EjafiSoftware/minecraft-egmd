@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
@@ -119,6 +120,42 @@ public class PortalGameTests {
         helper.assertBlockPresent(portal, new BlockPos(3, 2, 2));
         helper.assertBlockPresent(portal, new BlockPos(2, 4, 2));
         helper.assertBlockPresent(portal, new BlockPos(3, 4, 2));
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = TEMPLATE)
+    public static void transition_time_matches_vanilla_delay_for_survival_players(GameTestHelper helper) {
+        MiningPortalBlock portal = overworldPortal();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        int expected = helper.getLevel().getGameRules().getInt(GameRules.RULE_PLAYERS_NETHER_PORTAL_DEFAULT_DELAY);
+
+        int actual = portal.getPortalTransitionTime(helper.getLevel(), player);
+
+        if (actual != expected) {
+            helper.fail("Expected transition time " + expected + " but was " + actual);
+        }
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = TEMPLATE)
+    public static void survival_player_teleports_only_after_vanilla_delay(GameTestHelper helper) {
+        MiningPortalBlock portal = overworldPortal();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        int delay = helper.getLevel().getGameRules().getInt(GameRules.RULE_PLAYERS_NETHER_PORTAL_DEFAULT_DELAY);
+
+        player.setAsInsidePortal(portal, pos);
+        for (int tick = 0; tick < delay; tick++) {
+            if (player.portalProcess.processPortalTeleportation(helper.getLevel(), player, true)) {
+                helper.fail("Ready to teleport after only " + tick + " ticks inside the portal");
+            }
+            player.setAsInsidePortal(portal, pos);
+        }
+        if (!player.portalProcess.processPortalTeleportation(helper.getLevel(), player, true)) {
+            helper.fail("Not ready to teleport after the vanilla delay elapsed");
+        }
         helper.succeed();
     }
 

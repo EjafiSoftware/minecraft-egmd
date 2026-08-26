@@ -92,6 +92,28 @@ class MiningPortalShapeTest {
         }
     }
 
+    @Test
+    void isComplete_reportsComplete_whenInteriorIsFullyFilledWithPortalBlocks() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.X);
+        new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock()).createPortalBlocks(level);
+
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
+
+        assertTrue(shape.isComplete());
+    }
+
+    @Test
+    void isComplete_reportsIncomplete_whenOneInteriorPortalBlockIsMissing() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.X);
+        new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock()).createPortalBlocks(level);
+        level.removeBlock(INTERIOR_BOTTOM_LEFT.above(1), false);
+
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
+
+        assertTrue(shape.isValid());
+        assertFalse(shape.isComplete());
+    }
+
     private static MiningPortalBlock portalBlock() {
         return ModBlocks.PORTAL_BLOCKS.get(PortalVariants.OVERWORLD).get();
     }

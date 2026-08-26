@@ -24,6 +24,7 @@ public class MiningPortalShape {
     private final Direction rightDir;
     private BlockPos bottomLeft;
     private int height;
+    private int portalBlockCount;
     private final int width;
 
     private final MiningPortalBlock portalBlock;
@@ -129,8 +130,12 @@ public class MiningPortalShape {
 
             for (int x = 0; x < this.width; ++x) {
                 mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, x);
-                if (!this.isEmpty(this.level.getBlockState(mutablePos))) {
+                BlockState state = this.level.getBlockState(mutablePos);
+                if (!this.isEmpty(state)) {
                     return y;
+                }
+                if (state.is(this.portalBlock)) {
+                    ++this.portalBlockCount;
                 }
             }
         }
@@ -147,6 +152,13 @@ public class MiningPortalShape {
      */
     public boolean isValid() {
         return this.bottomLeft != null && this.width >= MIN_WIDTH && this.width <= MAX_WIDTH && this.height >= MIN_HEIGHT && this.height <= MAX_HEIGHT;
+    }
+
+    /**
+     * @return true if the frame is valid and every interior position holds a portal block
+     */
+    public boolean isComplete() {
+        return this.isValid() && this.portalBlockCount == this.width * this.height;
     }
 
     /**

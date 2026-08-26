@@ -12,7 +12,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -83,6 +85,21 @@ public class MiningPortalBlock extends Block implements Portal {
         }
     }
 
+    @Override
+    public Portal.Transition getLocalTransition() {
+        return Portal.Transition.CONFUSION;
+    }
+
+    @Override
+    public int getPortalTransitionTime(ServerLevel serverLevel, Entity entity) {
+        return entity instanceof Player player
+                ? Math.max(1, serverLevel.getGameRules().getInt(
+                        player.getAbilities().invulnerable
+                                ? GameRules.RULE_PLAYERS_NETHER_PORTAL_CREATIVE_DELAY
+                                : GameRules.RULE_PLAYERS_NETHER_PORTAL_DEFAULT_DELAY))
+                : 0;
+    }
+
     @Nullable
     @Override
     public DimensionTransition getPortalDestination(ServerLevel serverLevel, Entity entity, BlockPos pos) {
@@ -130,14 +147,17 @@ public class MiningPortalBlock extends Block implements Portal {
 
         PortalExitPlacement placement = PortalExitPlacement.compute(rectangle.minCorner, exitAxis, rectangle.axis1Size);
 
-        return new DimensionTransition(destLevel, placement.position(), Vec3.ZERO, placement.yRot(), 0.0F, DimensionTransition.DO_NOTHING);
+        return new DimensionTransition(destLevel, placement.position(), Vec3.ZERO, placement.yRot(), 0.0F,
+                DimensionTransition.PLAY_PORTAL_SOUND.then(DimensionTransition.PLACE_PORTAL_TICKET));
     }
 
     private Optional<BlockPos> findPortalAround(ServerLevel destLevel, BlockPos pos, WorldBorder worldBorder) {
-        int radius = ModConfig.PORTAL_SEARCH_RADIUS.getAsInt();
-        return destLevel.getPoiManager().findClosest(
+        int radius = Math.max(16, (int) (ModConfig.PORTAL_SEARCH_RADIUS.getAsInt() / destLevel.dimensionType().coordinateScale()));
+        PoiManager poiManager = destLevel.getPoiManager();
+        poiManager.ensureLoadedAndValid(destLevel, pos, radius);
+        return poiManager.findClosest(
                 holder -> this.poiTypeHolder.unwrapKey().map(holder::is).orElse(false),
-                worldBorder::isWithinBounds,
+                poiPos -> worldBorder.isWithinBounds(poiPos) && destLevel.getBlockState(poiPos).hasProperty(AXIS),
                 pos,
                 radius,
                 PoiManager.Occupancy.ANY
@@ -156,7 +176,7 @@ public class MiningPortalBlock extends Block implements Portal {
         Axis neighborAxis = direction.getAxis();
         Axis portalAxis = state.getValue(AXIS);
         boolean isHorizontalNeighbor = portalAxis != neighborAxis && neighborAxis.isHorizontal();
-        return !isHorizontalNeighbor && !neighborState.is(this) && !(new MiningPortalShape(level, pos, portalAxis, this)).isValid()
+        return !isHorizontalNeighbor && !neighborState.is(this) && !(new MiningPortalShape(level, pos, portalAxis, this)).isComplete()
                 ? Blocks.AIR.defaultBlockState()
                 : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
