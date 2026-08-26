@@ -41,8 +41,8 @@ import java.util.Optional;
  */
 public class MiningPortalBlock extends Block implements Portal {
     public static final EnumProperty<Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
-    protected static final VoxelShape X_AXIS_AABB = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
-    protected static final VoxelShape Z_AXIS_AABB = Block.box(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
+    private static final VoxelShape X_AXIS_AABB = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
+    private static final VoxelShape Z_AXIS_AABB = Block.box(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
 
     private final ResourceKey<Level> dimensionKey;
     private final Block frameBlock;
@@ -128,18 +128,9 @@ public class MiningPortalBlock extends Block implements Portal {
         BlockState exitState = destLevel.getBlockState(rectangle.minCorner);
         Axis exitAxis = exitState.getOptionalValue(AXIS).orElse(axis);
 
-        Direction rightDir = exitAxis == Axis.X ? Direction.WEST : Direction.SOUTH;
-        Direction frontDir = rightDir.getClockWise();
+        PortalExitPlacement placement = PortalExitPlacement.compute(rectangle.minCorner, exitAxis, rectangle.axis1Size);
 
-        Vec3 portalBottomCenter = Vec3.atLowerCornerOf(rectangle.minCorner).add(
-                Vec3.atLowerCornerOf(rightDir.getNormal()).scale(rectangle.axis1Size / 2.0)
-        );
-
-        Vec3 spawnPos = portalBottomCenter.add(Vec3.atLowerCornerOf(frontDir.getNormal()).scale(1.5));
-
-        float yRot = frontDir.toYRot();
-
-        return new DimensionTransition(destLevel, spawnPos, Vec3.ZERO, yRot, 0.0F, DimensionTransition.DO_NOTHING);
+        return new DimensionTransition(destLevel, placement.position(), Vec3.ZERO, placement.yRot(), 0.0F, DimensionTransition.DO_NOTHING);
     }
 
     private Optional<BlockPos> findPortalAround(ServerLevel destLevel, BlockPos pos, WorldBorder worldBorder) {
@@ -165,7 +156,7 @@ public class MiningPortalBlock extends Block implements Portal {
         Axis neighborAxis = direction.getAxis();
         Axis portalAxis = state.getValue(AXIS);
         boolean isHorizontalNeighbor = portalAxis != neighborAxis && neighborAxis.isHorizontal();
-        return !isHorizontalNeighbor && !neighborState.is(this) && !(new MiningPortalShape(level, pos, portalAxis, this, this.frameBlock)).isValid()
+        return !isHorizontalNeighbor && !neighborState.is(this) && !(new MiningPortalShape(level, pos, portalAxis, this)).isValid()
                 ? Blocks.AIR.defaultBlockState()
                 : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }

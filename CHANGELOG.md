@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0]
+
+### Fixed
+- Auto-built X-axis portals are no longer mirrored, and arriving entities now spawn centered in front of the portal instead of beside it
+- Portal creation no longer fails when the destination surface is below Y=0
+- `/egmd regenerate` now prints the actual dimension folder path instead of assuming the world folder is named `world`
+
 ## [1.1.0]
 
 ### Fixed

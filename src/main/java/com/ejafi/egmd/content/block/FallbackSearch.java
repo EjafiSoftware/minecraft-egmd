@@ -16,7 +16,7 @@ final class FallbackSearch implements PortalSearchStrategy {
     public Optional<BlockPos> search(ServerLevel level, BlockPos center, int maxY) {
         BlockPos.MutableBlockPos pos = center.mutable();
         int surfaceY = Math.min(maxY, level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX(), pos.getZ()));
-        for (int y = surfaceY; y >= 0; --y) {
+        for (int y = surfaceY; y >= level.getMinBuildHeight(); --y) {
             pos.setY(y);
             if (PortalSearchStrategy.canPlaceAt(level, pos)) return Optional.of(pos.immutable());
         }

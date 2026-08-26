@@ -9,6 +9,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,16 +25,18 @@ public class ModPoiTypes {
     /**
      * package-private so ModBlocks lambdas can look up the holder by variant
      */
-    static final Map<PortalVariant, DeferredHolder<PoiType, PoiType>> PORTAL_POI_TYPES = new LinkedHashMap<>();
+    static final Map<PortalVariant, DeferredHolder<PoiType, PoiType>> PORTAL_POI_TYPES;
 
     static {
+        Map<PortalVariant, DeferredHolder<PoiType, PoiType>> poiTypes = new LinkedHashMap<>();
         for (PortalVariant v : PortalVariants.ALL) {
-            PORTAL_POI_TYPES.put(v, POI_TYPES.register(v.id(), () -> new PoiType(
+            poiTypes.put(v, POI_TYPES.register(v.id(), () -> new PoiType(
                     Set.of(
                             ModBlocks.PORTAL_BLOCKS.get(v).get().defaultBlockState().setValue(MiningPortalBlock.AXIS, Axis.X),
                             ModBlocks.PORTAL_BLOCKS.get(v).get().defaultBlockState().setValue(MiningPortalBlock.AXIS, Axis.Z)
                     ), 1, 1)));
         }
+        PORTAL_POI_TYPES = Collections.unmodifiableMap(poiTypes);
     }
 
     public static void register(IEventBus eventBus) {

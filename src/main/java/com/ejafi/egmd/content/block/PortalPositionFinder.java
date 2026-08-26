@@ -35,7 +35,7 @@ final class PortalPositionFinder {
         BlockPos center = adjustedStartPos(destLevel, targetPos, block);
         loadChunks(destLevel, center);
 
-        int maxY = destLevel.getHeight() - 1;
+        int maxY = destLevel.getMaxBuildHeight() - 1;
         for (PortalSearchStrategy strategy : strategies) {
             Optional<BlockPos> result = strategy.search(destLevel, center, maxY);
             if (result.isPresent()) return result;

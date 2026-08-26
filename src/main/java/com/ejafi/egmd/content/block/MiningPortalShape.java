@@ -3,7 +3,8 @@ package com.ejafi.egmd.content.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelWriter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -18,15 +19,14 @@ public class MiningPortalShape {
     public static final int MAX_HEIGHT = 21;
     public static final int PLATFORM_DEPTH = 3;
 
-    private final LevelAccessor level;
+    private final BlockGetter level;
     private final Axis axis;
     private final Direction rightDir;
-    private int numPortalBlocks;
     private BlockPos bottomLeft;
     private int height;
     private final int width;
 
-    private final Block portalBlock;
+    private final MiningPortalBlock portalBlock;
     private final Block frameBlock;
 
     public int getHeight() {
@@ -39,14 +39,13 @@ public class MiningPortalShape {
      * @param level       The level to check in
      * @param pos         The position where ignition occurred
      * @param axis        The axis of the portal (X or Z)
-     * @param portalBlock The block to use for the portal interior
-     * @param frameBlock  The block that forms the frame
+     * @param portalBlock The portal block whose frame block defines the structure
      */
-    public MiningPortalShape(LevelAccessor level, BlockPos pos, Axis axis, Block portalBlock, Block frameBlock) {
+    public MiningPortalShape(BlockGetter level, BlockPos pos, Axis axis, MiningPortalBlock portalBlock) {
         this.level = level;
         this.axis = axis;
         this.portalBlock = portalBlock;
-        this.frameBlock = frameBlock;
+        this.frameBlock = portalBlock.getFrameBlock();
         this.rightDir = axis == Axis.X ? Direction.WEST : Direction.SOUTH;
         this.bottomLeft = this.calculateBottomLeft(pos);
         if (this.bottomLeft == null) {
@@ -130,13 +129,8 @@ public class MiningPortalShape {
 
             for (int x = 0; x < this.width; ++x) {
                 mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, x);
-                BlockState state = this.level.getBlockState(mutablePos);
-                if (!this.isEmpty(state)) {
+                if (!this.isEmpty(this.level.getBlockState(mutablePos))) {
                     return y;
-                }
-
-                if (state.is(this.portalBlock)) {
-                    ++this.numPortalBlocks;
                 }
             }
         }
@@ -158,15 +152,13 @@ public class MiningPortalShape {
     /**
      * Fills the frame with portal blocks.
      */
-    public void createPortalBlocks() {
+    public void createPortalBlocks(LevelWriter writer) {
         BlockState state = this.portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, this.axis);
         BlockPos.betweenClosed(
                 this.bottomLeft,
                 this.bottomLeft
                         .relative(Direction.UP, this.height - 1)
                         .relative(this.rightDir, this.width - 1))
-                .forEach(pos -> this.level.setBlock(pos, state, 18));
-
+                .forEach(pos -> writer.setBlock(pos, state, 18));
     }
-
 }

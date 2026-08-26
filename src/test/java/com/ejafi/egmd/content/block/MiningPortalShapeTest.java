@@ -4,80 +4,117 @@ import com.ejafi.egmd.core.registration.ModBlocks;
 import com.ejafi.egmd.core.registration.PortalVariants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.neoforged.testframework.junit.EphemeralTestServerProvider;
+import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(EphemeralTestServerProvider.class)
 class MiningPortalShapeTest {
-    private static final Block FRAME_BLOCK = Blocks.COBBLESTONE;
+    private static final BlockPos INTERIOR_BOTTOM_LEFT = new BlockPos(0, 100, 0);
+
+    private final FakeLevel level = new FakeLevel();
 
     @Test
-    void isValid_reportsValidShape_whenInteriorMeetsMinimumSize(MinecraftServer server) {
-        ServerLevel level = server.overworld();
-        BlockPos interiorBottomLeft = new BlockPos(0, 200, 0);
-        buildFrame(level, interiorBottomLeft, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT);
+    void isValid_reportsValidShape_whenInteriorMeetsMinimumSize() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.X);
 
-        MiningPortalShape shape = new MiningPortalShape(level, interiorBottomLeft, Axis.X, portalBlock(), FRAME_BLOCK);
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
 
         assertTrue(shape.isValid());
         assertEquals(MiningPortalShape.MIN_HEIGHT, shape.getHeight());
     }
 
     @Test
-    void isValid_rejectsShape_whenInteriorIsShorterThanMinimumHeight(MinecraftServer server) {
-        ServerLevel level = server.overworld();
-        BlockPos interiorBottomLeft = new BlockPos(64, 200, 0);
-        buildFrame(level, interiorBottomLeft, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT - 1);
+    void isValid_reportsValidShape_whenFrameIsBuiltAlongZAxis() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.Z);
 
-        MiningPortalShape shape = new MiningPortalShape(level, interiorBottomLeft, Axis.X, portalBlock(), FRAME_BLOCK);
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.Z, portalBlock());
+
+        assertTrue(shape.isValid());
+        assertEquals(MiningPortalShape.MIN_HEIGHT, shape.getHeight());
+    }
+
+    @Test
+    void isValid_rejectsShape_whenInteriorIsShorterThanMinimumHeight() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT - 1, Axis.X);
+
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
 
         assertFalse(shape.isValid());
     }
 
     @Test
-    void getHeight_measuresWholeFrame_whenStartedFromTopInteriorBlock(MinecraftServer server) {
-        ServerLevel level = server.overworld();
-        BlockPos interiorBottomLeft = new BlockPos(128, 200, 0);
-        int interiorHeight = 4;
-        buildFrame(level, interiorBottomLeft, MiningPortalShape.MIN_WIDTH, interiorHeight);
-        BlockPos topInteriorBlock = interiorBottomLeft.above(interiorHeight - 1);
+    void isValid_rejectsShape_whenInteriorIsNarrowerThanMinimumWidth() {
+        buildFrame(MiningPortalShape.MIN_WIDTH - 1, MiningPortalShape.MIN_HEIGHT, Axis.X);
 
-        MiningPortalShape shape = new MiningPortalShape(level, topInteriorBlock, Axis.X, portalBlock(), FRAME_BLOCK);
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
+
+        assertFalse(shape.isValid());
+    }
+
+    @Test
+    void isValid_rejectsShape_whenTopFrameBlockIsMissing() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.X);
+        level.removeBlock(INTERIOR_BOTTOM_LEFT.offset(0, MiningPortalShape.MIN_HEIGHT, 0), false);
+
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
+
+        assertFalse(shape.isValid());
+    }
+
+    @Test
+    void getHeight_measuresWholeFrame_whenStartedFromTopInteriorBlock() {
+        int interiorHeight = 4;
+        buildFrame(MiningPortalShape.MIN_WIDTH, interiorHeight, Axis.X);
+        BlockPos topInteriorBlock = INTERIOR_BOTTOM_LEFT.above(interiorHeight - 1);
+
+        MiningPortalShape shape = new MiningPortalShape(level, topInteriorBlock, Axis.X, portalBlock());
 
         assertTrue(shape.isValid());
         assertEquals(interiorHeight, shape.getHeight());
     }
 
-    private static Block portalBlock() {
-        return ModBlocks.PORTAL_BLOCKS.get(PortalVariants.OVERWORLD).get();
-    }
+    @Test
+    void createPortalBlocks_fillsInteriorWithAxisAlignedPortalBlocks_whenFrameIsValid() {
+        buildFrame(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, Axis.X);
+        MiningPortalShape shape = new MiningPortalShape(level, INTERIOR_BOTTOM_LEFT, Axis.X, portalBlock());
 
-    private static void buildFrame(ServerLevel level, BlockPos interiorBottomLeft, int interiorWidth, int interiorHeight) {
-        for (int x = -1; x <= interiorWidth; x++) {
-            setFrame(level, interiorBottomLeft.offset(x, -1, 0));
-            setFrame(level, interiorBottomLeft.offset(x, interiorHeight, 0));
-        }
+        shape.createPortalBlocks(level);
 
-        for (int y = 0; y < interiorHeight; y++) {
-            setFrame(level, interiorBottomLeft.offset(-1, y, 0));
-            setFrame(level, interiorBottomLeft.offset(interiorWidth, y, 0));
-
-            for (int x = 0; x < interiorWidth; x++) {
-                level.setBlockAndUpdate(interiorBottomLeft.offset(x, y, 0), Blocks.AIR.defaultBlockState());
+        for (int x = 0; x < MiningPortalShape.MIN_WIDTH; x++) {
+            for (int y = 0; y < MiningPortalShape.MIN_HEIGHT; y++) {
+                BlockState state = level.getBlockState(INTERIOR_BOTTOM_LEFT.offset(x, y, 0));
+                assertEquals(portalBlock(), state.getBlock());
+                assertEquals(Axis.X, state.getValue(MiningPortalBlock.AXIS));
             }
         }
     }
 
-    private static void setFrame(ServerLevel level, BlockPos pos) {
-        level.setBlockAndUpdate(pos, FRAME_BLOCK.defaultBlockState());
+    private static MiningPortalBlock portalBlock() {
+        return ModBlocks.PORTAL_BLOCKS.get(PortalVariants.OVERWORLD).get();
+    }
+
+    private void buildFrame(int interiorWidth, int interiorHeight, Axis axis) {
+        for (int along = -1; along <= interiorWidth; along++) {
+            setFrame(interiorPos(along, -1, axis));
+            setFrame(interiorPos(along, interiorHeight, axis));
+        }
+
+        for (int y = 0; y < interiorHeight; y++) {
+            setFrame(interiorPos(-1, y, axis));
+            setFrame(interiorPos(interiorWidth, y, axis));
+        }
+    }
+
+    private static BlockPos interiorPos(int along, int up, Axis axis) {
+        return axis == Axis.X
+                ? INTERIOR_BOTTOM_LEFT.offset(along, up, 0)
+                : INTERIOR_BOTTOM_LEFT.offset(0, up, along);
+    }
+
+    private void setFrame(BlockPos pos) {
+        level.setBlock(pos, portalBlock().getFrameBlock().defaultBlockState(), 3);
     }
 }

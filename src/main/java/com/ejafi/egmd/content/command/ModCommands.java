@@ -13,6 +13,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -79,7 +81,8 @@ public class ModCommands {
         }
 
         // Direct folder deletion while running is unsafe, so we provide clear manual instructions.
-        String folderPath = "world/dimensions/" + dimensionKey.location().getNamespace() + "/" + dimensionKey.location().getPath();
+        String folderPath = DimensionType.getStorageFolder(dimensionKey,
+                context.getSource().getServer().getWorldPath(LevelResource.ROOT)).normalize().toString();
 
         context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.evacuated", dimensionKey.location().toString()), true);
         context.getSource().sendSuccess(() -> Component.translatable("command.egmd.regenerate.success.instructions.title"), true);
