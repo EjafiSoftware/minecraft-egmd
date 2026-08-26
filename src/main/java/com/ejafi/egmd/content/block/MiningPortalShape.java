@@ -29,34 +29,18 @@ public class MiningPortalShape {
     private final Block portalBlock;
     private final Block frameBlock;
 
-    public Block getPortalBlock() {
-        return portalBlock;
-    }
-
-    public Block getFrameBlock() {
-        return frameBlock;
-    }
-
-    public Axis getAxis() {
-        return axis;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
     public int getHeight() {
         return height;
     }
 
     /**
      * Creates a new portal shape detector.
-     * 
-     * @param level The level to check in
-     * @param pos The position where ignition occurred
-     * @param axis The axis of the portal (X or Z)
+     *
+     * @param level       The level to check in
+     * @param pos         The position where ignition occurred
+     * @param axis        The axis of the portal (X or Z)
      * @param portalBlock The block to use for the portal interior
-     * @param frameBlock The block that forms the frame
+     * @param frameBlock  The block that forms the frame
      */
     public MiningPortalShape(LevelAccessor level, BlockPos pos, Axis axis, Block portalBlock, Block frameBlock) {
         this.level = level;
@@ -78,8 +62,9 @@ public class MiningPortalShape {
     }
 
     private BlockPos calculateBottomLeft(BlockPos pos) {
-        int minBuildHeight = this.level.getMinBuildHeight();
-        for (int i = Math.max(minBuildHeight, pos.getY() - MAX_HEIGHT); pos.getY() > i && this.isEmpty(this.level.getBlockState(pos.below())); pos = pos.below()) {
+        int lowestY = Math.max(this.level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
+        while (pos.getY() > lowestY && this.isEmpty(this.level.getBlockState(pos.below()))) {
+            pos = pos.below();
         }
 
         Direction oppositeDirection = this.rightDir.getOpposite();
@@ -175,15 +160,13 @@ public class MiningPortalShape {
      */
     public void createPortalBlocks() {
         BlockState state = this.portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, this.axis);
-        BlockPos.betweenClosed(this.bottomLeft, this.bottomLeft.relative(Direction.UP, this.height - 1).relative(this.rightDir, this.width - 1)).forEach((pos) -> {
-            this.level.setBlock(pos, state, 18);
-        });
+        BlockPos.betweenClosed(
+                this.bottomLeft,
+                this.bottomLeft
+                        .relative(Direction.UP, this.height - 1)
+                        .relative(this.rightDir, this.width - 1))
+                .forEach(pos -> this.level.setBlock(pos, state, 18));
+
     }
 
-    /**
-     * @return true if all interior blocks are portal blocks
-     */
-    public boolean isComplete() {
-        return this.isValid() && this.numPortalBlocks == this.width * this.height;
-    }
 }

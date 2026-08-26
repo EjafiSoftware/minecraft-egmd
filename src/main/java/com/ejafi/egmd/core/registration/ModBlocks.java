@@ -32,8 +32,8 @@ public class ModBlocks {
     static {
         for (PortalVariant v : PortalVariants.ALL) {
             PORTAL_BLOCKS.put(v, BLOCKS.register(v.id(), () ->
-                new MiningPortalBlock(portalProperties(v.mapColor()), v.dimensionKey(),
-                        v.frameBlock(), ModPoiTypes.PORTAL_POI_TYPES.get(v), v.surfaceY())
+                    new MiningPortalBlock(portalProperties(v.mapColor()), v.dimensionKey(),
+                            v.frameBlock(), ModPoiTypes.PORTAL_POI_TYPES.get(v), v.surfaceY())
             ));
         }
     }

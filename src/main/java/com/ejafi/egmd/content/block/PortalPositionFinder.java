@@ -15,7 +15,9 @@ import java.util.Optional;
  */
 final class PortalPositionFinder {
 
-    /** Default chain: spiral outward, fall back to straight-down scan. */
+    /**
+     * Default chain: spiral outward, fall back to straight-down scan.
+     */
     static final PortalPositionFinder DEFAULT = new PortalPositionFinder(
             List.of(new SpiralSearch(), new FallbackSearch()));
 
@@ -41,7 +43,9 @@ final class PortalPositionFinder {
         return Optional.empty();
     }
 
-    /** Snaps the Y coordinate to the dimension surface when entering a mining dimension. */
+    /**
+     * Snaps the Y coordinate to the dimension surface when entering a mining dimension.
+     */
     private static BlockPos adjustedStartPos(ServerLevel destLevel, BlockPos targetPos, MiningPortalBlock block) {
         if (ModDimensions.ALL_MINING_DIMENSIONS.contains(destLevel.dimension())) {
             return new BlockPos(targetPos.getX(), block.getSurfaceY(), targetPos.getZ());

@@ -69,11 +69,11 @@ public class ModCommands {
             player.setPortalCooldown();
             BlockPos spawnPos = overworld.getSharedSpawnPos();
             player.teleportTo(overworld,
-                spawnPos.getX() + 0.5,
-                spawnPos.getY(),
-                spawnPos.getZ() + 0.5,
-                player.getYRot(),
-                player.getXRot()
+                    spawnPos.getX() + 0.5,
+                    spawnPos.getY(),
+                    spawnPos.getZ() + 0.5,
+                    player.getYRot(),
+                    player.getXRot()
             );
             player.sendSystemMessage(Component.translatable("command.egmd.regenerate.player_moved"));
         }

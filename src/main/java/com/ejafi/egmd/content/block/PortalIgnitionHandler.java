@@ -3,15 +3,19 @@ package com.ejafi.egmd.content.block;
 import com.ejafi.egmd.EGMD;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @EventBusSubscriber(modid = EGMD.MODID)
 public class PortalIgnitionHandler {
     private static final AtomicReference<Map<Block, MiningPortalBlock>> frameToPortal = new AtomicReference<>(Map.of());
+    private static final TagKey<Item> PORTAL_IGNITERS =
+            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(EGMD.MODID, "portal_igniters"));
 
     private PortalIgnitionHandler() {}
 
-    /** Called from {@link EGMD#commonSetup} after all blocks are resolved. */
     public static void initFrameMap(Map<Block, MiningPortalBlock> map) {
         frameToPortal.set(Map.copyOf(map));
     }
@@ -37,10 +42,13 @@ public class PortalIgnitionHandler {
     @SubscribeEvent
     public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Level level = event.getLevel();
-        if (level.isClientSide()) return;
+        if (level.isClientSide())
+            return;
 
         ItemStack stack = event.getItemStack();
-        if (!stack.is(Items.FLINT_AND_STEEL)) return;
+        if (!(stack.is(PORTAL_IGNITERS) || stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT))) {
+            return;
+        }
 
         BlockPos pos = event.getPos();
         BlockState state = level.getBlockState(pos);
@@ -65,7 +73,7 @@ public class PortalIgnitionHandler {
 
     private static boolean trySpawnPortal(Level level, BlockPos pos, Block portalBlock, Block frameBlock) {
         return trySpawnPortalInAxis(level, pos, Axis.X, portalBlock, frameBlock) ||
-               trySpawnPortalInAxis(level, pos, Axis.Z, portalBlock, frameBlock);
+                trySpawnPortalInAxis(level, pos, Axis.Z, portalBlock, frameBlock);
     }
 
     private static boolean trySpawnPortalInAxis(Level level, BlockPos pos, Axis axis, Block portalBlock, Block frameBlock) {

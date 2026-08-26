@@ -28,7 +28,9 @@ interface PortalSearchStrategy {
      */
     Optional<BlockPos> search(ServerLevel level, BlockPos center, int maxY);
 
-    /** Returns {@code true} if a portal base block can be placed at {@code pos}. */
+    /**
+     * Returns {@code true} if a portal base block can be placed at {@code pos}.
+     */
     static boolean canPlaceAt(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         return state.isAir() || state.canBeReplaced();

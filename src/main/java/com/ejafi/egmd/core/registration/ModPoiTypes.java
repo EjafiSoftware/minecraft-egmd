@@ -21,7 +21,9 @@ public class ModPoiTypes {
     public static final DeferredRegister<PoiType> POI_TYPES =
             DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, EGMD.MODID);
 
-    /** package-private so ModBlocks lambdas can look up the holder by variant */
+    /**
+     * package-private so ModBlocks lambdas can look up the holder by variant
+     */
     static final Map<PortalVariant, DeferredHolder<PoiType, PoiType>> PORTAL_POI_TYPES = new LinkedHashMap<>();
 
     static {

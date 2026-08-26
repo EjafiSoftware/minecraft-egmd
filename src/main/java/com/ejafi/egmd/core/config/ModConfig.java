@@ -11,5 +11,5 @@ public class ModConfig {
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 
-    private ModConfig() { }
+    private ModConfig() {}
 }
