@@ -16,12 +16,6 @@ public class ModItems {
 
     public static final DeferredItem<BlockItem> PEARL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("pearl_block", ModBlocks.PEARL_BLOCK);
 
-    static {
-        for (PortalVariant v : PortalVariants.ALL) {
-            ITEMS.registerSimpleBlockItem(v.id(), ModBlocks.PORTAL_BLOCKS.get(v));
-        }
-    }
-
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

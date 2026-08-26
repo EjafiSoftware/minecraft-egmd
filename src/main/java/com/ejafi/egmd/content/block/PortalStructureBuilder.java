@@ -13,7 +13,7 @@ final class PortalStructureBuilder {
     private PortalStructureBuilder() {}
 
     static void build(ServerLevel level, BlockPos origin, Axis axis, MiningPortalBlock block) {
-        Direction dir = axis == Axis.X ? Direction.WEST : Direction.SOUTH;
+        Direction dir = axis == Axis.X ? Direction.EAST : Direction.SOUTH;
         BlockState frame = block.getFrameBlock().defaultBlockState();
         BlockState portal = block.defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
 

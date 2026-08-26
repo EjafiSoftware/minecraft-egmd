@@ -1,11 +1,10 @@
 package com.ejafi.egmd.content.block;
 
 import com.ejafi.egmd.core.registration.ModDimensions;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Orchestrates a chain of {@link PortalSearchStrategy} instances to find a suitable
@@ -15,7 +14,9 @@ import java.util.Optional;
  */
 final class PortalPositionFinder {
 
-    /** Default chain: spiral outward, fall back to straight-down scan. */
+    /**
+     * Default chain: spiral outward, fall back to straight-down scan.
+     */
     static final PortalPositionFinder DEFAULT = new PortalPositionFinder(
             List.of(new SpiralSearch(), new FallbackSearch()));
 
@@ -33,7 +34,7 @@ final class PortalPositionFinder {
         BlockPos center = adjustedStartPos(destLevel, targetPos, block);
         loadChunks(destLevel, center);
 
-        int maxY = destLevel.getHeight() - 1;
+        int maxY = destLevel.getMaxBuildHeight() - 1 - MiningPortalShape.MIN_HEIGHT;
         for (PortalSearchStrategy strategy : strategies) {
             Optional<BlockPos> result = strategy.search(destLevel, center, maxY);
             if (result.isPresent()) return result;
@@ -41,7 +42,9 @@ final class PortalPositionFinder {
         return Optional.empty();
     }
 
-    /** Snaps the Y coordinate to the dimension surface when entering a mining dimension. */
+    /**
+     * Snaps the Y coordinate to the dimension surface when entering a mining dimension.
+     */
     private static BlockPos adjustedStartPos(ServerLevel destLevel, BlockPos targetPos, MiningPortalBlock block) {
         if (ModDimensions.ALL_MINING_DIMENSIONS.contains(destLevel.dimension())) {
             return new BlockPos(targetPos.getX(), block.getSurfaceY(), targetPos.getZ());

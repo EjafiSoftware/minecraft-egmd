@@ -1,9 +1,8 @@
 package com.ejafi.egmd.core.registration;
 
+import java.util.List;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
-
-import java.util.List;
 
 public final class PortalVariants {
     public static final PortalVariant OVERWORLD = new PortalVariant(

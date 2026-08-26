@@ -1,10 +1,9 @@
 package com.ejafi.egmd.content.block;
 
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.Optional;
 
 /**
  * Strategy for locating a candidate {@link BlockPos} in which a portal can be placed.
@@ -28,7 +27,9 @@ interface PortalSearchStrategy {
      */
     Optional<BlockPos> search(ServerLevel level, BlockPos center, int maxY);
 
-    /** Returns {@code true} if a portal base block can be placed at {@code pos}. */
+    /**
+     * Returns {@code true} if a portal base block can be placed at {@code pos}.
+     */
     static boolean canPlaceAt(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         return state.isAir() || state.canBeReplaced();
