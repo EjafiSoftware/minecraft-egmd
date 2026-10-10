@@ -1,66 +1,65 @@
 package com.ejafi.egmd.content.block;
 
-import com.ejafi.egmd.core.registration.ModDimensions;
-import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction.Axis;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.border.WorldBorder;
 
 /**
- * Orchestrates a chain of {@link PortalSearchStrategy} instances to find a suitable
- * {@link BlockPos} in the destination level at which a portal can be placed.
- *
- * <p>Strategies are tried in order; the first non-empty result wins.</p>
+ * Finds where a new portal goes in the destination level: the nearest open site from
+ * {@link SpiralSearch}, or failing that a {@link ForcedPlacement} at the target.
  */
 final class PortalPositionFinder {
+    private static final PortalSearchStrategy OPEN_SEARCH = new SpiralSearch();
+    private static final PortalSearchStrategy FORCED_PLACEMENT = new ForcedPlacement();
+
+    private PortalPositionFinder() {}
 
     /**
-     * Default chain: spiral outward, fall back to straight-down scan.
+     * Where to build a portal, and whether it was forced into terrain.
+     *
+     * @param origin the portal's origin block
+     * @param forced true if the site was not open and the builder must clear the exit space
      */
-    static final PortalPositionFinder DEFAULT = new PortalPositionFinder(
-            List.of(new SpiralSearch(), new FallbackSearch()));
-
-    private final List<PortalSearchStrategy> strategies;
-
-    PortalPositionFinder(List<PortalSearchStrategy> strategies) {
-        this.strategies = List.copyOf(strategies);
-    }
+    record PortalSite(BlockPos origin, boolean forced) {}
 
     /**
-     * Returns the best position for a new portal near {@code targetPos}, or empty if no
-     * strategy found a suitable location.
+     * Returns the site for a new portal near {@code targetPos}, or empty if no site can be used
+     * without destroying a container, another portal, or an unbreakable block.
+     *
+     * @param targetPos the target position; in mining dimensions its Y must already be the flat surface
      */
-    Optional<BlockPos> find(ServerLevel destLevel, BlockPos targetPos, MiningPortalBlock block) {
-        BlockPos center = adjustedStartPos(destLevel, targetPos, block);
+    static Optional<PortalSite> find(ServerLevel destLevel, BlockPos targetPos, Axis axis) {
+        BlockPos center = clampInsideBorder(destLevel.getWorldBorder(), targetPos);
         loadChunks(destLevel, center);
 
-        int maxY = destLevel.getMaxBuildHeight() - 1 - MiningPortalShape.MIN_HEIGHT;
-        for (PortalSearchStrategy strategy : strategies) {
-            Optional<BlockPos> result = strategy.search(destLevel, center, maxY);
-            if (result.isPresent()) return result;
-        }
-        return Optional.empty();
+        return OPEN_SEARCH.search(destLevel, center, axis)
+                .map(origin -> new PortalSite(origin, false))
+                .or(() -> FORCED_PLACEMENT.search(destLevel, center, axis).map(origin -> new PortalSite(origin, true)));
     }
 
     /**
-     * Snaps the Y coordinate to the dimension surface when entering a mining dimension.
+     * Moves the center far enough inside the world border that a portal footprint built on it fits.
      */
-    private static BlockPos adjustedStartPos(ServerLevel destLevel, BlockPos targetPos, MiningPortalBlock block) {
-        if (ModDimensions.ALL_MINING_DIMENSIONS.contains(destLevel.dimension())) {
-            return new BlockPos(targetPos.getX(), block.getSurfaceY(), targetPos.getZ());
-        }
-        return targetPos;
+    private static BlockPos clampInsideBorder(WorldBorder border, BlockPos pos) {
+        int minX = Mth.ceil(border.getMinX()) + 1;
+        int maxX = Mth.floor(border.getMaxX()) - MiningPortalShape.MIN_WIDTH - 1;
+        int minZ = Mth.ceil(border.getMinZ()) + 1;
+        int maxZ = Mth.floor(border.getMaxZ()) - MiningPortalShape.MIN_WIDTH - 1;
+        if (minX > maxX || minZ > maxZ) return pos;
+        return new BlockPos(Mth.clamp(pos.getX(), minX, maxX), pos.getY(), Mth.clamp(pos.getZ(), minZ, maxZ));
     }
 
     /**
-     * Force-generates the 3×3 chunk neighborhood around {@code center} so that heightmap
-     * queries return real values even on first visit to the dimension.
+     * Force-generates every chunk the spiral and its footprints can touch, so heightmap queries
+     * return real values even on the first visit to the dimension.
      */
     private static void loadChunks(ServerLevel level, BlockPos center) {
-        int cx = center.getX() >> 4;
-        int cz = center.getZ() >> 4;
-        for (int x = cx - 1; x <= cx + 1; x++) {
-            for (int z = cz - 1; z <= cz + 1; z++) {
+        int reach = SpiralSearch.RADIUS + MiningPortalShape.MIN_WIDTH;
+        for (int x = (center.getX() - reach) >> 4; x <= (center.getX() + reach) >> 4; x++) {
+            for (int z = (center.getZ() - reach) >> 4; z <= (center.getZ() + reach) >> 4; z++) {
                 level.getChunk(x, z);
             }
         }

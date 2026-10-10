@@ -9,8 +9,9 @@
           "Name": "minecraft:prismarine"
         },
         "target": {
-          "predicate_type": "minecraft:block_match",
-          "block": "minecraft:end_stone"
+          "predicate_type": "minecraft:random_block_match",
+          "block": "minecraft:end_stone",
+          "probability": 0.333
         }
       },
       {
@@ -18,8 +19,9 @@
           "Name": "minecraft:prismarine_bricks"
         },
         "target": {
-          "predicate_type": "minecraft:block_match",
-          "block": "minecraft:end_stone"
+          "predicate_type": "minecraft:random_block_match",
+          "block": "minecraft:end_stone",
+          "probability": 0.5
         }
       },
       {

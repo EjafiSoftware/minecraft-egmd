@@ -6,7 +6,7 @@ Ejafi Games Mining Dimensions (EGMD) is a NeoForge mod that adds extra-high-reso
 
 ### Accessing the Mining Dimensions
 
-To enter a mining dimension, you must build a portal frame similar to a Nether portal (minimum 2x3 inner area) and ignite it with a **Flint and Steel**.
+To enter a mining dimension, build a portal frame in the Overworld the same way as a Nether portal (minimum 2x3 inner area, maximum 21x21) and light it with a **Flint and Steel** or a **Fire Charge**. Each portal connects the Overworld to its own mining dimension, and the matching portal on the other side takes you back. A portal can be lit only in the Overworld or in its own mining dimension.
 
 #### 1. Overworld Mining Dimension
 *   **Frame Material:** `Cobblestone`
@@ -24,6 +24,8 @@ To enter a mining dimension, you must build a portal frame similar to a Nether p
 ### Tips for Mining
 *   All mining dimensions are generated as flat worlds to make navigation and automated mining easier.
 *   Bedrock is located at the bottom (y=0 or below depending on the dimension type).
+*   No hostile mobs spawn in or travel into the mining dimensions.
+*   Beds do not work in the mining dimensions; plan to return to the Overworld to sleep.
 
 ---
 
@@ -35,9 +37,12 @@ EGMD includes administrative commands to manage the mining dimensions.
 **Usage:** `/egmd regenerate <dimension>`
 **Permission Level:** 2 (OP)
 
-This command is used to prepare a dimension for regeneration. 
-1.  It teleports all players currently in the specified mining dimension back to the Overworld spawn.
-2.  It provides the administrator with manual instructions to complete the regeneration (requires server restart and folder deletion).
+This command prepares a mining dimension for regeneration.
+1.  It closes the dimension's portals until the server stops, so nobody can re-enter it.
+2.  It moves every player in the dimension to a safe spot at the Overworld spawn. If any player cannot be moved, the command fails and says so.
+3.  It gives the administrator the remaining manual steps: stop the server, delete the dimension's folder, and restart.
+
+Players who were offline in a regenerated dimension are moved out of the new terrain when they next log in.
 
 ---
 

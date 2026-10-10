@@ -6,22 +6,45 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Where an entity arrives when exiting a portal: centered on the portal's width, one and a
- * half blocks in front of it, facing away.
+ * Where an entity arrives when exiting a portal: centered on the portal's width, on the block in
+ * front of it, behind it, or inside it, facing away from the portal.
  *
  * @param position the spawn position
  * @param yRot     the spawn rotation around the Y axis, in degrees
  */
 record PortalExitPlacement(Vec3 position, float yRot) {
 
-    static PortalExitPlacement compute(BlockPos minCorner, Axis axis, int width) {
-        Direction alongDir = axis == Axis.X ? Direction.EAST : Direction.SOUTH;
-        Direction frontDir = alongDir.getClockWise();
+    /**
+     * The block directly in front of the portal, on the side its generated landing platform covers.
+     */
+    static PortalExitPlacement computeFront(BlockPos minCorner, Axis axis, int width) {
+        Direction frontDir = resolveAlongDirection(axis).getClockWise();
+        return new PortalExitPlacement(computeOffsetFromCenter(minCorner, axis, width, frontDir, 1.0), frontDir.toYRot());
+    }
 
-        Vec3 bottomCenter = Vec3.atLowerCornerOf(minCorner)
-                .add(Vec3.atLowerCornerOf(alongDir.getNormal()).scale(width / 2.0));
-        Vec3 position = bottomCenter.add(Vec3.atLowerCornerOf(frontDir.getNormal()).scale(1.5));
+    /**
+     * The block directly behind the portal.
+     */
+    static PortalExitPlacement computeBack(BlockPos minCorner, Axis axis, int width) {
+        Direction backDir = resolveAlongDirection(axis).getCounterClockWise();
+        return new PortalExitPlacement(computeOffsetFromCenter(minCorner, axis, width, backDir, 1.0), backDir.toYRot());
+    }
 
-        return new PortalExitPlacement(position, frontDir.toYRot());
+    /**
+     * The bottom row of the portal itself, which is always clear of blocks.
+     */
+    static PortalExitPlacement computeInside(BlockPos minCorner, Axis axis, int width) {
+        Direction frontDir = resolveAlongDirection(axis).getClockWise();
+        return new PortalExitPlacement(computeOffsetFromCenter(minCorner, axis, width, frontDir, 0.0), frontDir.toYRot());
+    }
+
+    private static Direction resolveAlongDirection(Axis axis) {
+        return axis == Axis.X ? Direction.EAST : Direction.SOUTH;
+    }
+
+    private static Vec3 computeOffsetFromCenter(BlockPos minCorner, Axis axis, int width, Direction side, double distance) {
+        Vec3 along = Vec3.atLowerCornerOf(resolveAlongDirection(axis).getNormal()).scale(width / 2.0 - 0.5);
+        Vec3 outward = Vec3.atLowerCornerOf(side.getNormal()).scale(distance);
+        return Vec3.atBottomCenterOf(minCorner).add(along).add(outward);
     }
 }

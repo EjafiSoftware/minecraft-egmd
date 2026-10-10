@@ -41,16 +41,22 @@ com.ejafi.egmd/
 │   ├── block/
 │   │   ├── MiningPortalBlock.java     # Portal block: entity transport, portal-finding/creation, dimension transition
 │   │   ├── MiningPortalShape.java     # Validates portal frame geometry (reads via BlockGetter); fills interior with portal blocks
-│   │   ├── PortalIgnitionHandler.java # NeoForge event subscriber; listens for igniter items on frame blocks
+│   │   ├── PortalIgnitionHandler.java # NeoForge event subscriber; lights empty frames clicked with an igniter
 │   │   ├── PortalSearchStrategy.java  # Strategy interface for finding a portal placement position
-│   │   ├── SpiralSearch.java          # Spirals outward from the target XZ, descending from the surface
-│   │   ├── FallbackSearch.java        # Last resort: straight-down scan at the center XZ
-│   │   ├── PortalPositionFinder.java  # Chains search strategies; snaps to surface Y in mining dimensions
-│   │   ├── PortalStructureBuilder.java# Places frame, portal blocks, and landing platform
-│   │   ├── PortalExitPlacement.java   # Pure math: exit spawn position and rotation for a portal rectangle
+│   │   ├── SpiralSearch.java          # Spirals outward from the target XZ for an open site that needs no clearing
+│   │   ├── ForcedPlacement.java       # Last resort: the target XZ itself, overwriting terrain but never containers or portals
+│   │   ├── PortalFootprint.java       # The cells a generated portal occupies; judges whether a site can host or be forced
+│   │   ├── PortalPositionFinder.java  # Chains the search strategies within the world border
+│   │   ├── PortalStructureBuilder.java# Places frame, portal blocks, and landing platform; clears the exit when forced
+│   │   ├── PortalExitPlacement.java   # Pure math: arrival position and rotation in front of, behind, or inside a portal
 │   │   └── PortalGameTests.java       # GameTest suite for world-dependent behavior (runGameTestServer)
-│   └── command/
-│       └── ModCommands.java           # /egmd regenerate: evacuates players, gives manual regen instructions
+│   ├── command/
+│   │   └── ModCommands.java           # /egmd regenerate: closes the dimension, evacuates players, gives manual regen steps
+│   └── dimension/
+│       ├── HostileMobBan.java         # Cancels hostile mobs (and anything carrying one) joining a mining dimension
+│       ├── PendingRegenerations.java  # Dimensions closed by /egmd regenerate until the server stops
+│       ├── PlayerRelocator.java       # Moves players to safe ground: evacuation, and login inside changed terrain
+│       └── *GameTests.java            # GameTests for the classes above
 └── core/
     ├── config/
     │   └── ModConfig.java             # NeoForge ModConfigSpec (portal search radius)
@@ -67,22 +73,24 @@ com.ejafi.egmd/
 ### Key Design Patterns
 
 **Portal system flow:**
-1. `PortalIgnitionHandler` catches `PlayerInteractEvent.RightClickBlock` for igniter items (`egmd:portal_igniters` tag or firestarter ability) on frame blocks. Its frame-to-portal lookup is built by `PortalIgnitionHandler.init()` during common setup.
-2. `MiningPortalShape` validates the frame geometry (min 2×3 interior, max 21×21) and fills it with portal blocks.
-3. `MiningPortalBlock` implements `Portal` and handles `entityInside` → `getPortalDestination`. It searches a configurable radius (default 128) for an existing portal POI in the target dimension, or finds a position via `PortalPositionFinder` and builds one via `PortalStructureBuilder`. Portals in mining dimensions are placed at each dimension's flat surface Y (see `ModDimensions`). Exit spawn position and rotation come from `PortalExitPlacement`.
+1. `PortalIgnitionHandler` catches `PlayerInteractEvent.RightClickBlock` for igniter items (`egmd:portal_igniters` tag or firestarter ability) on frame blocks, or on fire inside a frame. It runs on both sides so the client sees the click consumed, but only the server builds the portal. It respects spectator mode, adventure-mode build rules, and a denied item use, and lights a frame only in the Overworld or in its own mining dimension. Its frame-to-portal lookup is built by `PortalIgnitionHandler.init()` during common setup.
+2. `MiningPortalShape` validates the frame geometry (min 2×3 interior, max 21×21) and fills it with portal blocks. Infested frame blocks count as frame.
+3. `MiningPortalBlock` implements `Portal` and handles `entityInside` → `getPortalDestination`. A portal links the Overworld and its own mining dimension only. It refuses hostile mobs (`HostileMobBan`) and dimensions closed for regeneration (`PendingRegenerations`). It searches a configurable horizontal square (default 128) for an existing portal POI in the target dimension, or finds a site via `PortalPositionFinder` and builds one via `PortalStructureBuilder`. Portals in mining dimensions are placed at each dimension's flat surface Y (see `ModDimensions`). The traveler arrives in front of the portal, behind it if the front is blocked, or inside it as a last resort (`selectExit`, `PortalExitPlacement`). Portal blocks refuse fluids.
 
 **Dimensions are data-driven**: all three dimensions are fully defined in `src/main/resources/data/egmd/dimension/` as JSON (flat generator with custom biome). Ore generation uses `configured_feature` + `placed_feature` JSON pairs in `src/main/resources/data/egmd/worldgen/`.
 
 **Each `MiningPortalBlock` instance** stores its target `ResourceKey<Level>` and required `frameBlock` — enabling a single generic class to handle all three portals with different behaviors.
 
-**Event bus distinction**: `PortalIgnitionHandler` and `ModCommands` use `@EventBusSubscriber` (NeoForge bus). Client color handlers in `EGMDClient` subscribe on the mod event bus via `modEventBus.addListener`. Check which bus an event fires on before subscribing.
+**Mining dimensions are mob-free and bedless**: every dimension type sets `bed_works` and `has_raids` to false, and `HostileMobBan` cancels any `Enemy` joining one, however it arrives.
+
+**Event bus distinction**: `PortalIgnitionHandler`, `ModCommands`, and the `content/dimension` subscribers use `@EventBusSubscriber` (NeoForge bus). Client color handlers in `EGMDClient` subscribe on the mod event bus via `modEventBus.addListener`. Check which bus an event fires on before subscribing.
 
 ### Testing
 
 Two tiers; both must pass before claiming done:
 
 - **Unit tests** (`./gradlew test`): plain JUnit on the FML test runtime. Registries and mod blocks are loaded, but **no world exists** — `EphemeralTestServerProvider`'s server has no levels, so `server.overworld()` is null; never write a unit test that touches a real level. World reads/writes in unit tests go through the map-backed `FakeLevel` (`BlockGetter` + `LevelWriter`) in the test source set.
-- **GameTests** (`./gradlew runGameTestServer`): `PortalGameTests` covers world-dependent behavior (structure building, searches, ignition end to end). Tests use the shipped empty template `data/egmd/structure/empty_7x7x7.nbt`; `@GameTestHolder` supplies the `egmd:` namespace, so `@GameTest(template = ...)` takes the bare template name.
+- **GameTests** (`./gradlew runGameTestServer`): the `*GameTests` classes cover world-dependent behavior (structure building, searches, arrival, ignition end to end, the mob ban, relocation). The GameTest server loads only the vanilla dimensions, never the mining dimensions, so behavior that needs a mining dimension loaded is tested through its pure decision method instead. GameTest names become resource paths, so they are lowercase `<method>_<behavior>_when_<condition>`. Tests use the shipped empty template `data/egmd/structure/empty_7x7x7.nbt`; `@GameTestHolder` supplies the `egmd:` namespace, so `@GameTest(template = ...)` takes the bare template name.
 
 ## Coding Standards
 

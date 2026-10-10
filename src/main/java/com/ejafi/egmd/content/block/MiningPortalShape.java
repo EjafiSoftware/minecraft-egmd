@@ -5,7 +5,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelWriter;
+import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -84,14 +86,14 @@ public class MiningPortalShape {
             mutablePos.set(pos).move(direction, i);
             BlockState state = this.level.getBlockState(mutablePos);
             if (!this.isEmpty(state)) {
-                if (state.is(this.frameBlock)) {
+                if (isFrame(state, this.frameBlock)) {
                     return i;
                 }
                 break;
             }
 
             BlockState belowState = this.level.getBlockState(mutablePos.move(Direction.DOWN));
-            if (!belowState.is(this.frameBlock)) {
+            if (!isFrame(belowState, this.frameBlock)) {
                 break;
             }
         }
@@ -108,7 +110,7 @@ public class MiningPortalShape {
     private boolean hasTopFrame(BlockPos.MutableBlockPos mutablePos, int currentHeight) {
         for (int i = 0; i < this.width; ++i) {
             mutablePos.set(this.bottomLeft).move(Direction.UP, currentHeight).move(this.rightDir, i);
-            if (!this.level.getBlockState(mutablePos).is(this.frameBlock)) {
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
                 return false;
             }
         }
@@ -119,12 +121,12 @@ public class MiningPortalShape {
     private int getDistanceUntilTop(BlockPos.MutableBlockPos mutablePos) {
         for (int y = 0; y < MAX_HEIGHT; ++y) {
             mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir.getOpposite(), 1);
-            if (!this.level.getBlockState(mutablePos).is(this.frameBlock)) {
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
                 return y;
             }
 
             mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, this.width);
-            if (!this.level.getBlockState(mutablePos).is(this.frameBlock)) {
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
                 return y;
             }
 
@@ -144,7 +146,7 @@ public class MiningPortalShape {
     }
 
     private boolean isEmpty(BlockState state) {
-        return state.isAir() || state.is(this.portalBlock);
+        return state.isAir() || state.getBlock() instanceof BaseFireBlock || state.is(this.portalBlock);
     }
 
     /**
@@ -152,6 +154,22 @@ public class MiningPortalShape {
      */
     public boolean isValid() {
         return this.bottomLeft != null && this.width >= MIN_WIDTH && this.width <= MAX_WIDTH && this.height >= MIN_HEIGHT && this.height <= MAX_HEIGHT;
+    }
+
+    /**
+     * @return true if the frame is valid and no interior position holds a portal block yet
+     */
+    public boolean isEmptyFrame() {
+        return this.isValid() && this.portalBlockCount == 0;
+    }
+
+    /**
+     * @return true if {@code state} counts as a frame block for a portal framed with {@code frameBlock},
+     * including the silverfish-infested variant of that block
+     */
+    public static boolean isFrame(BlockState state, Block frameBlock) {
+        return state.is(frameBlock)
+                || state.getBlock() instanceof InfestedBlock infested && infested.getHostBlock() == frameBlock;
     }
 
     /**

@@ -2,7 +2,8 @@
   "parent": "minecraft:block/nether_portal_ns",
   "render_type": "minecraft:translucent",
   "textures": {
-    "portal": "minecraft:block/nether_portal"
+    "particle": "egmd:block/mining_portal",
+    "portal": "egmd:block/mining_portal"
   },
   "elements": [
     {

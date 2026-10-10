@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -12,14 +13,27 @@ import net.minecraft.world.level.block.state.BlockState;
 final class PortalStructureBuilder {
     private PortalStructureBuilder() {}
 
-    static void build(ServerLevel level, BlockPos origin, Axis axis, MiningPortalBlock block) {
+    /**
+     * Builds a portal at {@code origin}. A forced build also clears the exit space in front of the
+     * portal, since the site was not open terrain.
+     */
+    static void build(ServerLevel level, BlockPos origin, Axis axis, MiningPortalBlock block, boolean forced) {
         Direction dir = axis == Axis.X ? Direction.EAST : Direction.SOUTH;
         BlockState frame = block.getFrameBlock().defaultBlockState();
         BlockState portal = block.defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
 
+        if (forced) {
+            clearExit(level, origin, axis);
+        }
         placeFrame(level, origin, dir, frame);
         placePortalBlocks(level, origin, dir, portal);
         placePlatform(level, origin, dir, frame);
+    }
+
+    private static void clearExit(ServerLevel level, BlockPos origin, Axis axis) {
+        for (BlockPos pos : PortalFootprint.listExitCells(origin, axis)) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        }
     }
 
     private static void placeFrame(ServerLevel level, BlockPos origin, Direction dir, BlockState frame) {

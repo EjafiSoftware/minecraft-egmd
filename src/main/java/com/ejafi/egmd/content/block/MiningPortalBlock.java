@@ -1,8 +1,13 @@
 package com.ejafi.egmd.content.block;
 
 import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.content.dimension.HostileMobBan;
+import com.ejafi.egmd.content.dimension.PendingRegenerations;
 import com.ejafi.egmd.core.config.ModConfig;
+import com.ejafi.egmd.core.registration.ModDimensions;
 import com.ejafi.egmd.core.registration.ModParticles;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import net.minecraft.BlockUtil;
@@ -11,13 +16,17 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
@@ -26,6 +35,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -35,17 +45,20 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Custom portal block for the Mining Dimension.
- * Reuses the nether portal texture but uses a configurable frame (Cobblestone or Netherrack).
+ * Portal block linking the Overworld with one mining dimension. Each instance carries its target
+ * dimension, frame block, and tint, so one class serves every portal variant.
  */
-public class MiningPortalBlock extends Block implements Portal {
+public class MiningPortalBlock extends Block implements Portal, LiquidBlockContainer {
     public static final EnumProperty<Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
     private static final VoxelShape X_AXIS_AABB = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
     private static final VoxelShape Z_AXIS_AABB = Block.box(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
@@ -80,10 +93,6 @@ public class MiningPortalBlock extends Block implements Portal {
 
     public Block getFrameBlock() {
         return frameBlock;
-    }
-
-    public int getSurfaceY() {
-        return surfaceY;
     }
 
     @Override
@@ -139,7 +148,15 @@ public class MiningPortalBlock extends Block implements Portal {
     @Nullable
     @Override
     public DimensionTransition getPortalDestination(ServerLevel serverLevel, @NotNull Entity entity, @NotNull BlockPos pos) {
-        ResourceKey<Level> resourceKey = serverLevel.dimension() == this.dimensionKey ? Level.OVERWORLD : this.dimensionKey;
+        ResourceKey<Level> resourceKey = resolveDestination(serverLevel.dimension(), this.dimensionKey);
+        if (resourceKey == null || !HostileMobBan.admits(entity, resourceKey)) {
+            return null;
+        }
+        if (PendingRegenerations.isPending(resourceKey)) {
+            notifyPlayer(entity, "message.egmd.portal.regenerating");
+            return null;
+        }
+
         ServerLevel destLevel = serverLevel.getServer().getLevel(resourceKey);
         if (destLevel == null) {
             EGMD.LOGGER.warn("Portal destination dimension {} does not exist", resourceKey.location());
@@ -148,14 +165,30 @@ public class MiningPortalBlock extends Block implements Portal {
 
         WorldBorder worldBorder = destLevel.getWorldBorder();
         double scale = DimensionType.getTeleportationScale(serverLevel.dimensionType(), destLevel.dimensionType());
-
         BlockPos targetPos = worldBorder.clampToBounds(entity.getX() * scale, entity.getY(), entity.getZ() * scale);
+        if (ModDimensions.ALL_MINING_DIMENSIONS.contains(resourceKey)) {
+            targetPos = targetPos.atY(this.surfaceY);
+        }
 
         return this.getExitPortal(destLevel, entity, pos, targetPos, worldBorder);
     }
 
+    /**
+     * Mining portals link the Overworld with their own mining dimension and nothing else, so a portal
+     * standing anywhere else leads nowhere.
+     *
+     * @return the dimension a portal in {@code current} leads to, or null if it leads nowhere
+     */
+    @Nullable
+    static ResourceKey<Level> resolveDestination(ResourceKey<Level> current, ResourceKey<Level> portalDimension) {
+        if (current == Level.OVERWORLD) return portalDimension;
+        if (current == portalDimension) return Level.OVERWORLD;
+        return null;
+    }
+
+    @Nullable
     private DimensionTransition getExitPortal(ServerLevel destLevel, Entity entity, BlockPos pos, BlockPos targetPos, WorldBorder worldBorder) {
-        Optional<BlockPos> optional = findPortalAround(destLevel, targetPos, worldBorder);
+        Optional<BlockPos> optional = findPortalAround(destLevel, targetPos, worldBorder, computeSearchRadius(destLevel));
         BlockUtil.FoundRectangle rectangle;
         Axis axis;
         if (optional.isPresent()) {
@@ -167,44 +200,95 @@ public class MiningPortalBlock extends Block implements Portal {
             axis = entity.level().getBlockState(pos).getOptionalValue(AXIS).orElse(Axis.X);
             Optional<BlockUtil.FoundRectangle> optionalRectangle = this.createPortal(destLevel, targetPos, axis);
             if (optionalRectangle.isEmpty()) {
-                EGMD.LOGGER.error("Unable to create a portal in dimension {}", destLevel.dimension().location());
+                EGMD.LOGGER.warn("No safe place to build a portal near {} in dimension {}", targetPos, destLevel.dimension().location());
+                notifyPlayer(entity, "message.egmd.portal.no_safe_location");
                 return null;
             }
 
             rectangle = optionalRectangle.get();
         }
 
-        return getPortalTransition(destLevel, rectangle, axis);
-    }
-
-    private static DimensionTransition getPortalTransition(ServerLevel destLevel, BlockUtil.FoundRectangle rectangle, Axis axis) {
         BlockState exitState = destLevel.getBlockState(rectangle.minCorner);
         Axis exitAxis = exitState.getOptionalValue(AXIS).orElse(axis);
-
-        PortalExitPlacement placement = PortalExitPlacement.compute(rectangle.minCorner, exitAxis, rectangle.axis1Size);
+        PortalExitPlacement placement = selectExit(destLevel, rectangle, exitAxis, entity);
 
         return new DimensionTransition(destLevel, placement.position(), Vec3.ZERO, placement.yRot(), 0.0F,
                 DimensionTransition.PLAY_PORTAL_SOUND.then(DimensionTransition.PLACE_PORTAL_TICKET));
     }
 
-    private Optional<BlockPos> findPortalAround(ServerLevel destLevel, BlockPos pos, WorldBorder worldBorder) {
-        int radius = Math.max(16, (int) (ModConfig.PORTAL_SEARCH_RADIUS.getAsInt() / destLevel.dimensionType().coordinateScale()));
+    /**
+     * Picks where an entity arrives at a portal: in front of it, else behind it, else inside it,
+     * taking the first spot that has a floor and room for the entity.
+     */
+    static PortalExitPlacement selectExit(ServerLevel level, BlockUtil.FoundRectangle rectangle, Axis axis, Entity entity) {
+        EntityDimensions dimensions = entity.getDimensions(entity.getPose());
+        for (PortalExitPlacement candidate : List.of(
+                PortalExitPlacement.computeFront(rectangle.minCorner, axis, rectangle.axis1Size),
+                PortalExitPlacement.computeBack(rectangle.minCorner, axis, rectangle.axis1Size))) {
+            if (isSafeArrival(level, entity, dimensions, candidate.position())) {
+                return candidate;
+            }
+        }
+
+        PortalExitPlacement inside = PortalExitPlacement.computeInside(rectangle.minCorner, axis, rectangle.axis1Size);
+        return new PortalExitPlacement(
+                PortalShape.findCollisionFreePosition(inside.position(), level, entity, dimensions), inside.yRot());
+    }
+
+    private static boolean isSafeArrival(ServerLevel level, Entity entity, EntityDimensions dimensions, Vec3 position) {
+        BlockPos floor = BlockPos.containing(position).below();
+        return level.getBlockState(floor).isFaceSturdy(level, floor, Direction.UP)
+                && level.noCollision(entity, dimensions.makeBoundingBox(position));
+    }
+
+    private static int computeSearchRadius(ServerLevel destLevel) {
+        return Math.max(16, (int) (ModConfig.PORTAL_SEARCH_RADIUS.getAsInt() / destLevel.dimensionType().coordinateScale()));
+    }
+
+    /**
+     * Finds the nearest portal of this variant within {@code radius} blocks horizontally of
+     * {@code pos}, at any height, as vanilla does for nether portals.
+     */
+    Optional<BlockPos> findPortalAround(ServerLevel destLevel, BlockPos pos, WorldBorder worldBorder, int radius) {
         PoiManager poiManager = destLevel.getPoiManager();
         poiManager.ensureLoadedAndValid(destLevel, pos, radius);
-        return poiManager.findClosest(
-                holder -> this.poiTypeHolder.unwrapKey().map(holder::is).orElse(false),
-                poiPos -> worldBorder.isWithinBounds(poiPos) && destLevel.getBlockState(poiPos).hasProperty(AXIS),
-                pos,
-                radius,
-                PoiManager.Occupancy.ANY
-        );
+        return poiManager.getInSquare(
+                        holder -> this.poiTypeHolder.unwrapKey().map(holder::is).orElse(false),
+                        pos,
+                        radius,
+                        PoiManager.Occupancy.ANY)
+                .map(PoiRecord::getPos)
+                .filter(worldBorder::isWithinBounds)
+                .filter(poiPos -> destLevel.getBlockState(poiPos).hasProperty(AXIS))
+                .min(Comparator.<BlockPos>comparingDouble(poiPos -> poiPos.distSqr(pos)).thenComparingInt(BlockPos::getY));
     }
 
     private Optional<BlockUtil.FoundRectangle> createPortal(ServerLevel destLevel, BlockPos pos, Axis axis) {
-        Optional<BlockPos> bestPos = PortalPositionFinder.DEFAULT.find(destLevel, pos, this);
-        if (bestPos.isEmpty()) return Optional.empty();
-        PortalStructureBuilder.build(destLevel, bestPos.get(), axis, this);
-        return Optional.of(new BlockUtil.FoundRectangle(bestPos.get(), MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT));
+        Optional<PortalPositionFinder.PortalSite> site = PortalPositionFinder.find(destLevel, pos, axis);
+        if (site.isEmpty()) return Optional.empty();
+        PortalStructureBuilder.build(destLevel, site.get().origin(), axis, this, site.get().forced());
+        return Optional.of(new BlockUtil.FoundRectangle(site.get().origin(), MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT));
+    }
+
+    private static void notifyPlayer(Entity entity, String translationKey) {
+        if (entity instanceof ServerPlayer player) {
+            player.displayClientMessage(Component.translatable(translationKey), true);
+        }
+    }
+
+    @Override
+    public boolean canPlaceLiquid(@Nullable Player player, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Fluid fluid) {
+        return false;
+    }
+
+    @Override
+    public boolean placeLiquid(@NotNull LevelAccessor level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull FluidState fluidState) {
+        return false;
+    }
+
+    @Override
+    protected boolean canBeReplaced(@NotNull BlockState state, @NotNull Fluid fluid) {
+        return false;
     }
 
     @Override
