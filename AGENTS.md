@@ -48,15 +48,13 @@ com.ejafi.egmd/
 │   │   ├── PortalFootprint.java       # The cells a generated portal occupies; judges whether a site can host or be forced
 │   │   ├── PortalPositionFinder.java  # Chains the search strategies within the world border
 │   │   ├── PortalStructureBuilder.java# Places frame, portal blocks, and landing platform; clears the exit when forced
-│   │   ├── PortalExitPlacement.java   # Pure math: arrival position and rotation in front of, behind, or inside a portal
-│   │   └── PortalGameTests.java       # GameTest suite for world-dependent behavior (runGameTestServer)
+│   │   └── PortalExitPlacement.java   # Pure math: arrival position and rotation in front of, behind, or inside a portal
 │   ├── command/
 │   │   └── ModCommands.java           # /egmd regenerate: closes the dimension, evacuates players, gives manual regen steps
 │   └── dimension/
 │       ├── HostileMobBan.java         # Cancels hostile mobs (and anything carrying one) joining a mining dimension
 │       ├── PendingRegenerations.java  # Dimensions closed by /egmd regenerate until the server stops
-│       ├── PlayerRelocator.java       # Moves players to safe ground: evacuation, and login inside changed terrain
-│       └── *GameTests.java            # GameTests for the classes above
+│       └── PlayerRelocator.java       # Moves players to safe ground: evacuation, and login inside changed terrain
 └── core/
     ├── config/
     │   └── ModConfig.java             # NeoForge ModConfigSpec (portal search radius)
@@ -90,7 +88,7 @@ com.ejafi.egmd/
 Two tiers; both must pass before claiming done:
 
 - **Unit tests** (`./gradlew test`): plain JUnit on the FML test runtime. Registries and mod blocks are loaded, but **no world exists** — `EphemeralTestServerProvider`'s server has no levels, so `server.overworld()` is null; never write a unit test that touches a real level. World reads/writes in unit tests go through the map-backed `FakeLevel` (`BlockGetter` + `LevelWriter`) in the test source set.
-- **GameTests** (`./gradlew runGameTestServer`): the `*GameTests` classes cover world-dependent behavior (structure building, searches, arrival, ignition end to end, the mob ban, relocation). The GameTest server loads only the vanilla dimensions, never the mining dimensions, so behavior that needs a mining dimension loaded is tested through its pure decision method instead. GameTest names become resource paths, so they are lowercase `<method>_<behavior>_when_<condition>`. Tests use the shipped empty template `data/egmd/structure/empty_7x7x7.nbt`; `@GameTestHolder` supplies the `egmd:` namespace, so `@GameTest(template = ...)` takes the bare template name.
+- **GameTests** (`./gradlew runGameTestServer`): the `*GameTests` classes live in their own `gameTest` source set (`src/gameTest/`), in the same packages as the classes they test so they can reach package-private methods. `build.gradle` binds that source set to the `egmd` mod alongside `main`, so the dev runs load it but the mod jar never contains it. They cover world-dependent behavior (structure building, searches, arrival, ignition end to end, the mob ban, relocation). The GameTest server loads only the vanilla dimensions, never the mining dimensions, so behavior that needs a mining dimension loaded is tested through its pure decision method instead. GameTest names become resource paths, so they are lowercase `<method>_<behavior>_when_<condition>`. Tests use the empty template `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`; `@GameTestHolder` supplies the `egmd:` namespace, so `@GameTest(template = ...)` takes the bare template name.
 
 ## Coding Standards
 
