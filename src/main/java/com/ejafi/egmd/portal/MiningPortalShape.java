@@ -1,6 +1,9 @@
 package com.ejafi.egmd.portal;
 
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -151,15 +154,28 @@ final class MiningPortalShape {
     }
 
     static boolean isFrame(BlockState state, Block frameBlock) {
-        return resolveFrameHost(state).equals(frameBlock);
+        return resolveInfestedHost(state).equals(frameBlock);
     }
 
-    static Block resolveFrameHost(BlockState state) {
+    static Block resolveInfestedHost(BlockState state) {
         return state.getBlock() instanceof InfestedBlock infested ? infested.getHostBlock() : state.getBlock();
     }
 
     boolean isComplete() {
         return this.isValid() && this.portalBlockCount == this.width * this.height;
+    }
+
+    Map<PortalCorner, BlockState> readCorners() {
+        if (!this.isValid()) {
+            return Map.of();
+        }
+
+        BlockPos lowest = BlockPos.min(this.bottomLeft, this.bottomLeft.relative(this.rightDir, this.width - 1));
+        return PortalCorner.locateAll(new BlockUtil.FoundRectangle(lowest, this.width, this.height), this.axis)
+                .entrySet()
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey, entry -> this.level.getBlockState(entry.getValue())));
     }
 
     void createPortalBlocks(LevelWriter writer) {

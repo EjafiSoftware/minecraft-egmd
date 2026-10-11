@@ -37,17 +37,19 @@ com.ejafi.egmd/
 │   ├── PortalRegisters.java               # Block, POI type, and portal_spark particle registers; getPortalBlock(variant)
 │   ├── PortalConfig.java                  # ModConfigSpec with portalSearchRadius (16 to 512, default 128); its description feeds the config comment and the screen tooltip
 │   ├── PortalMessages.java                # Translation keys for the action-bar messages a portal shows
-│   ├── PortalVariant.java                 # Record of one portal: registry ID, MiningDimension, frame block, map color, tint color
+│   ├── PortalVariant.java                 # Record of one portal: registry ID, MiningDimension, frame block, default corner block, corner hint key, map color, tint color; getCornerTag() derives egmd:<id>_corners
 │   ├── PortalVariants.java                # The OVERWORLD, NETHER, and END variants
 │   ├── MiningPortalBlock.java             # The portal block: chooseRoute() and travel, pane shape, ambient sound and tinted sparks, collapse, fluid refusal
-│   ├── MiningPortalShape.java             # Reads a frame through BlockGetter, validates its interior size, and fills it with portal blocks
-│   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame; owns the egmd:portal_igniters tag key
+│   ├── MiningPortalShape.java             # Reads a frame and its corners through BlockGetter, validates its interior size, and fills it with portal blocks
+│   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for an interior rectangle
+│   ├── PortalCornerMaterials.java         # Judges corners against a Predicate<BlockState> and copies them, with a fallback block; create(variant) binds the corner tag
+│   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
 │   ├── ArrivalTarget.java                 # Where an exit portal goes: OnFlatSurface in a mining dimension, or OnTerrain elsewhere
 │   ├── ExitPortalFinder.java              # Finds an existing exit portal through the POI search, or builds one at a site PortalPositionFinder picks
 │   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site
 │   ├── PortalSite.java                    # An Open site, or a Forced site whose exit cells must be cleared
-│   ├── PortalFootprint.java               # The frame, portal, exit, and platform cells of a generated portal; judges canHost and canForce
-│   ├── PortalStructureBuilder.java        # Writes a portal, its frame, and its platform to a LevelWriter; clears the exit of a forced site
+│   ├── PortalFootprint.java               # The frame, corner, portal, exit, and platform cells of a generated portal; judges canHost and canForce
+│   ├── PortalStructureBuilder.java        # Writes a portal, its frame with the given corner blocks, and its platform to a LevelWriter; clears the exit of a forced site
 │   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a portal rectangle
 │   ├── PortalExitSelector.java            # Picks the first safe arrival for an entity: front, then back, else inside
 │   └── client/
@@ -55,21 +57,16 @@ com.ejafi.egmd/
 │       └── PortalSparkParticle.java       # Translucent portal particle tinted from a ColorParticleOption
 ├── dimension/
 │   ├── MiningDimension.java               # The three mining dimensions: level key, min Y, flat layers, computeSurfaceY(), findByLevelKey()
-│   ├── DimensionMessages.java             # Translation keys for /egmd regenerate output and login messages
+│   ├── DimensionMessages.java             # Translation key for the login relocation message
 │   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs in a mining dimension
-│   ├── PendingRegenerations.java          # Dimensions closed by /egmd regenerate; cleared on ServerStoppedEvent
-│   ├── PlayerRelocator.java               # Moves a player to the Overworld spawn; PlayerLoggedInEvent subscriber that chooses a LoginRescue
-│   ├── OverworldMove.java                 # Arrived, or Canceled when the teleport did not happen
-│   ├── DimensionRegenerator.java          # Closes a mining dimension, evacuates its players, and returns a RegenerationResult
-│   ├── RegenerationResult.java            # NotMiningDimension, PlayersStranded, or Evacuated with the dimension's storage folder
-│   └── RegenerationCommand.java           # RegisterCommandsEvent subscriber for /egmd regenerate <dimension>
+│   └── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks
 ├── pearl/
 │   └── PearlBlocks.java                   # pearl_block block and item registers; adds the item to the Building Blocks tab
 └── datagen/
     ├── DataGatherer.java                  # GatherDataEvent subscriber that registers every provider and the datapack registry set
     ├── EgmdBlockStateProvider.java        # Portal and pearl_block block states, block models, and the pearl_block item model
     ├── EgmdLanguageProvider.java          # en_us translations
-    ├── EgmdBlockTagsProvider.java         # minecraft:mineable/pickaxe
+    ├── EgmdBlockTagsProvider.java         # minecraft:mineable/pickaxe and the three egmd:*_corners tags
     ├── EgmdItemTagsProvider.java          # egmd:portal_igniters
     ├── EgmdBlockLootProvider.java         # pearl_block loot table (1 to 4 Ender Pearls)
     ├── EgmdParticleDescriptionProvider.java # portal_spark sprites (vanilla generic_0 to generic_7)
@@ -88,8 +85,9 @@ src/testFixtures/java/com/ejafi/egmd/
 │   └── MiningDimensionFaker.java          # MiningDimension from a generated level key, min Y, and layers; pickRegistered() for one of the three real ones
 └── portal/
     ├── FakeLevel.java                     # Map-backed CollisionGetter and LevelWriter for unit tests
+    ├── PortalCornersFaker.java            # Four distinct non-frame corner states; fillCorners() for one state at every corner
     ├── PortalFootprintFaker.java          # Random PortalFootprint at a Y where a portal fits
-    ├── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior
+    ├── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior, with corners that default to the frame block
     └── RegisteredPortalBlocks.java        # The registered Overworld MiningPortalBlock
 
 src/test/java/com/ejafi/egmd/
@@ -99,10 +97,12 @@ src/test/java/com/ejafi/egmd/
 └── portal/
     ├── MiningPortalBlockTest.java
     ├── MiningPortalShapeTest.java
+    ├── PortalCornerMaterialsTest.java
     ├── PortalExitTest.java
     ├── PortalFootprintTest.java
     ├── PortalIgnitionHandlerTest.java
-    └── PortalPositionFinderTest.java
+    ├── PortalPositionFinderTest.java
+    └── PortalStructureBuilderTest.java
 
 src/gameTest/java/com/ejafi/egmd/
 ├── GameTestTemplates.java                 # Template name constants (EMPTY_7X7X7)
@@ -119,11 +119,23 @@ src/gameTest/java/com/ejafi/egmd/
 
 One `MiningPortalBlock` class serves all three portals. `PortalRegisters` registers one instance per `PortalVariant`, and each instance reads its frame block, target dimension, and tint from its variant. A POI type per variant lets the destination search find existing portals.
 
+Each variant also names its corner tag, `egmd:<id>_corners`, and a default corner block that is in that tag.
+
+| Variant | Frame | Corner tag contents | Default corner |
+|---|---|---|---|
+| `mining_portal` | Cobblestone | Dirt, Coarse Dirt, Rooted Dirt, Grass Block, Podzol, Mycelium, `#c:gravels`, `#c:sands` | Dirt |
+| `nether_mining_portal` | Netherrack | `#c:cobblestones`, `#c:stones` | Cobblestone |
+| `end_mining_portal` | End Stone | `#c:netherracks`, `#c:obsidians`, Prismarine, Prismarine Bricks, Dark Prismarine | Netherrack |
+
 ### Lighting a portal
 
-`PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame. The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then looks for an empty frame on the X axis, then the Z axis.
+`PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame. The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
 
-The handler cancels the click on both sides so the client sees it consumed. Only the server fills the frame, consumes a Fire Charge or damages any other igniter, plays the igniter's sound, and emits a `BLOCK_PLACE` game event. The handler finds a frame's variant in a static map built from `PortalVariants.ALL`, since frame blocks are vanilla blocks, and reads the variant's portal block through `PortalRegisters` when the click happens.
+The corners are the cells diagonal to the interior rectangle, which `MiningPortalShape.readCorners()` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `isValid`, `isComplete`, and `MiningPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
+
+When an empty frame exists but none has valid corners, the handler leaves the click alone, so vanilla Flint and Steel places fire as usual. On the server, and only in the Overworld, the player also gets the variant's corner hint on the action bar. In Nether Mining and End Mining every tunnel through Netherrack or End Stone is a frame without corners, so the hint would fire constantly there.
+
+When it lights a frame, the handler cancels the click on both sides so the client sees it consumed. Tags sync to the client, so both sides reach the same decision. Only the server fills the frame, consumes a Fire Charge or damages any other igniter, plays the igniter's sound, and emits a `BLOCK_PLACE` game event. The handler finds a frame's variant in a static map built from `PortalVariants.ALL`, since frame blocks are vanilla blocks, and reads the variant's portal block through `PortalRegisters` when the click happens.
 
 ### Travel
 
@@ -133,14 +145,21 @@ The handler cancels the click on both sides so the client sees it consumed. Only
 |---|---|---|
 | `resolveDestination` maps the Overworld to the portal's mining dimension and that mining dimension back to the Overworld. A portal in any other dimension leads nowhere. | `Unlinked` | Nothing |
 | `HostileMobGuard.admits` refuses a hostile mob, or anything carrying one, bound for a mining dimension. | `Refused` | Nothing |
-| A destination in `PendingRegenerations` refuses everyone. | `ClosedForRegeneration` | The closed-for-regeneration message |
 | Otherwise | `Travel` with the destination | The steps below |
 
 1. The entity's X and Z are scaled by the two dimensions' coordinate scales and clamped to the destination's world border.
 2. `computeArrivalTarget` builds the `ArrivalTarget`. A mining dimension gives `OnFlatSurface` at `MiningDimension.computeSurfaceY()`. The Overworld gives `OnTerrain` at the scaled position.
 3. `ExitPortalFinder` runs the POI search for an existing portal of the same variant in a square of radius `max(16, portalSearchRadius / coordinateScale)`, taking the nearest and then the lowest.
-4. When none exists, `ExitPortalFinder` has `PortalPositionFinder` pick a site and `PortalStructureBuilder` build the portal there. When no site exists, the traveler sees the no-safe-location message and stays put.
+4. When none exists, `ExitPortalFinder` has `PortalPositionFinder` pick a site and `PortalStructureBuilder` build the portal there with the corners described below. When no site exists, the traveler sees the no-safe-location message and stays put.
 5. `PortalExitSelector` picks where the traveler appears.
+
+### Exit portal corners
+
+`getPortalDestination` reads the source portal's corners through `MiningPortalShape.readCorners()` at the source portal block, and `PortalCornerMaterials.copyAll` maps them onto the exit portal by `PortalCorner`. Bottom corners stay at the bottom and top corners at the top. The corner at the lower coordinate along the source portal's axis goes to the corner at the lower coordinate along the exit's axis, which is the same axis.
+
+Each copied state is replaced by the default state of its infested host, and a block outside the corner tag is replaced by the variant's default corner. That keeps a player from swapping valuable blocks into the corners of a lit portal and having them duplicated on the other side. A `FallingBlock`, such as Sand or Gravel, is replaced by the default corner at the bottom corners only, since nothing checks what lies under the platform and it would fall. When the source frame cannot be read, all four corners use the default.
+
+`PortalFootprint.locateCorners()` places the bottom corners in the middle row of the platform and the top corners in the frame plane, and `PortalStructureBuilder` writes each frame and platform cell once, choosing the corner state for a corner cell and the frame block everywhere else.
 
 ### Placement search
 
@@ -152,12 +171,6 @@ With no open site, the finder forces one at the target column, provided `PortalF
 
 `PortalExitSelector` tries the cell in front of the portal, then the cell behind it. A candidate is safe when the block below has a sturdy top face and the entity's bounding box has no collision there. When neither is safe, the entity arrives inside the portal at the position vanilla `PortalShape.findCollisionFreePosition` returns.
 
-### Regeneration
-
-`/egmd regenerate <dimension>` needs permission level 2. `RegenerationCommand` calls `DimensionRegenerator`, which refuses a dimension that is not a mining dimension. Otherwise it adds the dimension to `PendingRegenerations` and moves every player in it to the Overworld spawn through `PlayerRelocator.sendToOverworld`. That method takes the spawn column's `MOTION_BLOCKING_NO_LEAVES` height and the first clear space above it, and messages each player who arrives.
-
-If any teleport is canceled, the result is `PlayersStranded` and the command reports a failure. Otherwise it is `Evacuated`, and the command prints the manual steps with the dimension's storage folder path. The dimension stays closed until the server stops, because `PendingRegenerations` clears on `ServerStoppedEvent`.
-
 ### Login rescue
 
 `PlayerRelocator.onPlayerLoggedIn` asks the pure `chooseRescue` decision what to do with a player who logs in.
@@ -165,9 +178,10 @@ If any teleport is canceled, the result is `PlayersStranded` and the command rep
 | Situation | `LoginRescue` | Effect |
 |---|---|---|
 | Not in a mining dimension, or standing clear | `Stay` | Nothing |
-| In a dimension closed for regeneration | `LeaveClosedDimension` | Moved to the Overworld spawn with `message.egmd.login.closed_for_regeneration` |
 | Inside blocks, with clear space higher in the same column | `LiftToClearSpace` | Moved up with `message.egmd.login.relocated` |
 | Inside blocks, with no clear space above | `SendToOverworld` | Moved to the Overworld spawn with `message.egmd.login.relocated` |
+
+A move to the Overworld spawn takes the spawn column's `MOTION_BLOCKING_NO_LEAVES` height and the first clear space above it. The player gets the message only when the teleport actually lands them in the Overworld.
 
 ### Hostile mobs, beds, and raids
 
@@ -189,7 +203,7 @@ Every file a data provider can produce comes from `./gradlew runData`, which wri
 
 | Bus | Subscribers |
 |---|---|
-| Game bus, through `@EventBusSubscriber` | `PortalIgnitionHandler`, `HostileMobGuard`, `PendingRegenerations`, `PlayerRelocator`, `RegenerationCommand` |
+| Game bus, through `@EventBusSubscriber` | `PortalIgnitionHandler`, `HostileMobGuard`, `PlayerRelocator` |
 | Mod bus, through `@EventBusSubscriber` | `DataGatherer` (`GatherDataEvent`) |
 | Mod bus, through `modEventBus.addListener` | `PearlBlocks` (creative tab), `PortalClient` (block colors, particle providers) |
 
@@ -197,7 +211,7 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 ## Testing
 
-**Unit tests** live in `src/test` and run on JUnit 5 through ModDevGradle's `unitTest` support with `net.neoforged:testframework`. World reads and writes go through `FakeLevel`, which implements `CollisionGetter` (and through it `BlockGetter`) and `LevelWriter`.
+**Unit tests** live in `src/test` and run on JUnit 5 through ModDevGradle's `unitTest` support with `net.neoforged:testframework`. World reads and writes go through `FakeLevel`, which implements `CollisionGetter` (and through it `BlockGetter`) and `LevelWriter`. The unit-test runtime binds no data tags, so every tag is empty there. A unit test therefore never checks tag membership, and logic that depends on a tag takes a `Predicate<BlockState>` that the test supplies, as `PortalCornerMaterials` does. Tag contents are tested in GameTests, where the server loads data tags.
 
 **GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(EGMD.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs a mining dimension loaded is tested through its pure decision method.
 
@@ -210,6 +224,7 @@ Code follows the frie-skills skills: `brandon-standards` with its `references/ja
 - The mod has no `api` package.
 - Each translation key is a constant in its feature (`DimensionMessages`, `PortalMessages`, `PortalConfig`), and its English text is in `EgmdLanguageProvider`.
 - The igniter tag key is `PortalIgnitionHandler.PORTAL_IGNITERS`, and its contents are in `EgmdItemTagsProvider`: Flint and Steel, the optional `c:tools/igniter` tag, and the optional `create_unbreakable_tools_series:unbreakable_netherite_flint_and_steel`.
+- Each corner tag key comes from `PortalVariant.getCornerTag()`, and its contents are in `EgmdBlockTagsProvider`. The `c:` tags are required references, since data generation loads NeoForge alongside the mod.
 
 ## Resource locations
 
@@ -219,7 +234,7 @@ Code follows the frie-skills skills: `brandon-standards` with its `references/ja
 | `assets/egmd/lang/en_us.json` | `EgmdLanguageProvider` |
 | `assets/egmd/particles/portal_spark.json` | `EgmdParticleDescriptionProvider` |
 | `data/egmd/loot_table/blocks/pearl_block.json` | `LootTableProvider` with `EgmdBlockLootProvider` |
-| `data/minecraft/tags/block/mineable/pickaxe.json` | `EgmdBlockTagsProvider` |
+| `data/minecraft/tags/block/mineable/pickaxe.json`, `data/egmd/tags/block/*_corners.json` | `EgmdBlockTagsProvider` |
 | `data/egmd/tags/item/portal_igniters.json` | `EgmdItemTagsProvider` |
 | `data/egmd/dimension_type/*.json`, `data/egmd/dimension/*.json` | `MiningLevels` |
 | `data/egmd/worldgen/biome/*.json` | `MiningBiomes` |

@@ -2,8 +2,8 @@ package com.ejafi.egmd.portal;
 
 import com.ejafi.egmd.dimension.HostileMobGuard;
 import com.ejafi.egmd.dimension.MiningDimension;
-import com.ejafi.egmd.dimension.PendingRegenerations;
 import com.mojang.logging.LogUtils;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
@@ -151,10 +151,6 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
             case PortalRoute.Refused refused -> {
                 return null;
             }
-            case PortalRoute.ClosedForRegeneration closedForRegeneration -> {
-                notifyPlayer(entity, PortalMessages.CLOSED_FOR_REGENERATION);
-                return null;
-            }
         }
 
         ServerLevel destLevel = serverLevel.getServer().getLevel(destination);
@@ -168,8 +164,11 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
                 destLevel.getWorldBorder().clampToBounds(entity.getX() * scale, entity.getY(), entity.getZ() * scale);
         Axis sourceAxis = serverLevel.getBlockState(pos).getOptionalValue(AXIS).orElse(Axis.X);
         ArrivalTarget target = computeArrivalTarget(new PortalFootprint(scaledPos, sourceAxis), destination);
+        Map<PortalCorner, BlockState> exitCorners = PortalCornerMaterials.create(variant)
+                .copyAll(new MiningPortalShape(serverLevel, pos, sourceAxis, this).readCorners());
 
-        Optional<BlockUtil.FoundRectangle> exitPortal = new ExitPortalFinder(destLevel, variant).findOrCreate(target);
+        Optional<BlockUtil.FoundRectangle> exitPortal =
+                new ExitPortalFinder(destLevel, variant).findOrCreate(target, exitCorners);
         if (exitPortal.isEmpty()) {
             LOGGER.warn(
                     "No safe place to build a portal near {} in dimension {}",
@@ -202,10 +201,6 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
 
         if (!HostileMobGuard.admits(traveler, destination)) {
             return new PortalRoute.Refused();
-        }
-
-        if (PendingRegenerations.isPending(destination)) {
-            return new PortalRoute.ClosedForRegeneration();
         }
 
         return new PortalRoute.Travel(destination);
@@ -291,7 +286,5 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
         record Unlinked() implements PortalRoute {}
 
         record Refused() implements PortalRoute {}
-
-        record ClosedForRegeneration() implements PortalRoute {}
     }
 }

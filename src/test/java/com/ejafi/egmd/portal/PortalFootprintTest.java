@@ -2,6 +2,7 @@ package com.ejafi.egmd.portal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
 import java.util.stream.Stream;
 import net.datafaker.Faker;
 import net.minecraft.core.BlockPos;
@@ -134,6 +135,37 @@ class PortalFootprintTest {
         boolean forceable = PortalFootprint.canForce(level, footprint);
 
         assertThat(forceable).isFalse();
+    }
+
+    @Test
+    void locateCorners_placesCornersDiagonalToPortal_whenAxisIsX() {
+        BlockPos origin = footprint.origin();
+
+        Map<PortalCorner, BlockPos> corners = footprint.locateCorners();
+
+        assertThat(corners)
+                .isEqualTo(Map.of(
+                        PortalCorner.LOW_BOTTOM, origin.offset(-1, -1, 0),
+                        PortalCorner.HIGH_BOTTOM, origin.offset(MiningPortalShape.MIN_WIDTH, -1, 0),
+                        PortalCorner.LOW_TOP, origin.offset(-1, MiningPortalShape.MIN_HEIGHT, 0),
+                        PortalCorner.HIGH_TOP,
+                                origin.offset(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, 0)));
+    }
+
+    @Test
+    void locateCorners_placesCornersDiagonalToPortal_whenAxisIsZ() {
+        PortalFootprint alongZ = new PortalFootprintFaker().withAxis(Axis.Z).generate();
+        BlockPos origin = alongZ.origin();
+
+        Map<PortalCorner, BlockPos> corners = alongZ.locateCorners();
+
+        assertThat(corners)
+                .isEqualTo(Map.of(
+                        PortalCorner.LOW_BOTTOM, origin.offset(0, -1, -1),
+                        PortalCorner.HIGH_BOTTOM, origin.offset(0, -1, MiningPortalShape.MIN_WIDTH),
+                        PortalCorner.LOW_TOP, origin.offset(0, MiningPortalShape.MIN_HEIGHT, -1),
+                        PortalCorner.HIGH_TOP,
+                                origin.offset(0, MiningPortalShape.MIN_HEIGHT, MiningPortalShape.MIN_WIDTH)));
     }
 
     private PortalFootprint generateFootprintInsideBorderAtZ(int z) {

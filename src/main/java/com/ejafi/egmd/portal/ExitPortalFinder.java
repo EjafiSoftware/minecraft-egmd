@@ -1,6 +1,7 @@
 package com.ejafi.egmd.portal;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
@@ -23,10 +24,10 @@ final class ExitPortalFinder {
         this.poiTypeKey = PortalRegisters.getPoiTypeKey(variant);
     }
 
-    Optional<BlockUtil.FoundRectangle> findOrCreate(ArrivalTarget target) {
+    Optional<BlockUtil.FoundRectangle> findOrCreate(ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
         return findPortalAround(target.footprint().origin())
                 .map(this::findRectangleAround)
-                .or(() -> createPortal(target));
+                .or(() -> createPortal(target, corners));
     }
 
     Optional<BlockPos> findPortalAround(BlockPos pos) {
@@ -58,9 +59,10 @@ final class ExitPortalFinder {
                 pos -> level.getBlockState(pos).equals(state));
     }
 
-    private Optional<BlockUtil.FoundRectangle> createPortal(ArrivalTarget target) {
+    private Optional<BlockUtil.FoundRectangle> createPortal(
+            ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
         var builder = new PortalStructureBuilder(
-                PortalRegisters.getPortalBlock(variant).get());
+                PortalRegisters.getPortalBlock(variant).get(), corners);
         return PortalPositionFinder.find(level, target).map(site -> {
             builder.build(level, site);
             return new BlockUtil.FoundRectangle(

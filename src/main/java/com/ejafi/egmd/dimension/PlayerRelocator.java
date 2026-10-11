@@ -23,21 +23,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 public final class PlayerRelocator {
     private PlayerRelocator() {}
 
-    private static OverworldMove moveToOverworldSpawn(ServerPlayer player) {
-        ServerLevel overworld = player.server.overworld();
-        BlockPos surface =
-                overworld.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, overworld.getSharedSpawnPos());
-        Vec3 target =
-                Vec3.atBottomCenterOf(findClearSpace(overworld, player, surface).orElse(surface));
-        player.setPortalCooldown();
-        player.teleportTo(overworld, target.x, target.y, target.z, player.getYRot(), player.getXRot());
-        if (!player.level().equals(overworld)) {
-            return new OverworldMove.Canceled();
-        }
-
-        return new OverworldMove.Arrived();
-    }
-
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -51,20 +36,13 @@ public final class PlayerRelocator {
                 player.teleportTo(target.x, target.y, target.z);
                 sendMessage(player, DimensionMessages.LOGIN_RELOCATED);
             }
-            case LoginRescue.SendToOverworld sendToOverworld ->
-                sendToOverworld(player, DimensionMessages.LOGIN_RELOCATED);
-            case LoginRescue.LeaveClosedDimension leaveClosedDimension ->
-                sendToOverworld(player, DimensionMessages.LOGIN_CLOSED_FOR_REGENERATION);
+            case LoginRescue.SendToOverworld sendToOverworld -> sendToOverworld(player);
         }
     }
 
     static LoginRescue chooseRescue(ResourceKey<Level> dimension, Supplier<Footing> footing) {
         if (MiningDimension.findByLevelKey(dimension).isEmpty()) {
             return new LoginRescue.Stay();
-        }
-
-        if (PendingRegenerations.isPending(dimension)) {
-            return new LoginRescue.LeaveClosedDimension();
         }
 
         return switch (footing.get()) {
@@ -84,12 +62,17 @@ public final class PlayerRelocator {
                 .orElseGet(Footing.Entombed::new);
     }
 
-    static OverworldMove sendToOverworld(ServerPlayer player, String messageKey) {
-        OverworldMove move = moveToOverworldSpawn(player);
-        if (move instanceof OverworldMove.Arrived) {
-            sendMessage(player, messageKey);
+    private static void sendToOverworld(ServerPlayer player) {
+        ServerLevel overworld = player.server.overworld();
+        BlockPos surface =
+                overworld.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, overworld.getSharedSpawnPos());
+        Vec3 target =
+                Vec3.atBottomCenterOf(findClearSpace(overworld, player, surface).orElse(surface));
+        player.setPortalCooldown();
+        player.teleportTo(overworld, target.x, target.y, target.z, player.getYRot(), player.getXRot());
+        if (player.level().equals(overworld)) {
+            sendMessage(player, DimensionMessages.LOGIN_RELOCATED);
         }
-        return move;
     }
 
     private static void sendMessage(ServerPlayer player, String messageKey) {
@@ -121,7 +104,5 @@ public final class PlayerRelocator {
         record LiftToClearSpace(BlockPos clearSpace) implements LoginRescue {}
 
         record SendToOverworld() implements LoginRescue {}
-
-        record LeaveClosedDimension() implements LoginRescue {}
     }
 }
