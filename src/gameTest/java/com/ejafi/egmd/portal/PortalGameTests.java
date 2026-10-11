@@ -131,6 +131,24 @@ public final class PortalGameTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void find_portal_around_returns_farther_portal_when_nearer_poi_holds_vanilla_nether_portal(
+            GameTestHelper helper) {
+        BlockState portalState =
+                RegisteredPortalBlocks.getOverworldPortalBlock().defaultBlockState();
+        BlockPos stalePos = helper.absolutePos(ORIGIN);
+        helper.setBlock(ORIGIN, portalState);
+        helper.getLevel().getChunkAt(stalePos).setBlockState(stalePos, Blocks.NETHER_PORTAL.defaultBlockState(), false);
+        BlockPos portalPos = new BlockPos(3, 5, 3);
+        helper.setBlock(portalPos, portalState);
+
+        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD)
+                .findPortalAround(helper.absolutePos(FLOOR_CENTER));
+
+        helper.assertValueEqual(found, Optional.of(helper.absolutePos(portalPos)), "found portal");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void select_returns_back_side_when_front_is_blocked(GameTestHelper helper) {
         buildOpenPortalAtOrigin(helper, Axis.X);
         blockCells(helper, FRONT_EXIT);

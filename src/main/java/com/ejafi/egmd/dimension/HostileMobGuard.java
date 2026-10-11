@@ -3,6 +3,7 @@ package com.ejafi.egmd.dimension;
 import com.ejafi.egmd.EGMD;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,7 +19,11 @@ public final class HostileMobGuard {
             return true;
         }
 
-        return entity.getPassengersAndSelf().noneMatch(Enemy.class::isInstance);
+        return entity.getPassengersAndSelf().noneMatch(HostileMobGuard::isRefused);
+    }
+
+    private static boolean isRefused(Entity entity) {
+        return entity instanceof Enemy && !(entity instanceof WitherBoss);
     }
 
     @SubscribeEvent

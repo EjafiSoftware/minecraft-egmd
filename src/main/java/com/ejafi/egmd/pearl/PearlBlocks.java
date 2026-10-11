@@ -36,7 +36,7 @@ public final class PearlBlocks {
     }
 
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey().equals(CreativeModeTabs.BUILDING_BLOCKS)) {
+        if (event.getTabKey().equals(CreativeModeTabs.NATURAL_BLOCKS)) {
             event.accept(PEARL_BLOCK_ITEM);
         }
     }

@@ -57,18 +57,19 @@ com.ejafi.egmd/
 │       └── PortalSparkParticle.java       # Translucent portal particle tinted from a ColorParticleOption
 ├── dimension/
 │   ├── MiningDimension.java               # The three mining dimensions: level key, min Y, flat layers, computeSurfaceY(), findByLevelKey()
-│   ├── DimensionMessages.java             # Translation key for the login relocation message
-│   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs in a mining dimension
+│   ├── DimensionMessages.java             # Translation keys for the login relocation and refused bed messages
+│   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs other than the Wither in a mining dimension
+│   ├── BedGuard.java                      # allowsUse() decision, and the RightClickBlock subscriber that keeps beds in a mining dimension from being used
 │   └── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks
 ├── pearl/
-│   └── PearlBlocks.java                   # pearl_block block and item registers; adds the item to the Building Blocks tab
+│   └── PearlBlocks.java                   # pearl_block block and item registers; adds the item to the Natural Blocks tab
 └── datagen/
     ├── DataGatherer.java                  # GatherDataEvent subscriber that registers every provider and the datapack registry set
     ├── EgmdBlockStateProvider.java        # Portal and pearl_block block states, block models, and the pearl_block item model
     ├── EgmdLanguageProvider.java          # en_us translations
     ├── EgmdBlockTagsProvider.java         # minecraft:mineable/pickaxe and the three egmd:*_corners tags
     ├── EgmdItemTagsProvider.java          # egmd:portal_igniters
-    ├── EgmdBlockLootProvider.java         # pearl_block loot table (1 to 4 Ender Pearls)
+    ├── EgmdBlockLootProvider.java         # pearl_block loot table: itself with Silk Touch, else 1 to 4 Ender Pearls with a Fortune uniform bonus and explosion decay
     ├── EgmdParticleDescriptionProvider.java # portal_spark sprites (vanilla generic_0 to generic_7)
     ├── MiningOre.java                     # One ore: name, OreConfiguration, vein count per chunk, height range
     ├── MiningOres.java                    # Every mod ore, listed once per dimension; bootstraps their configured and placed features
@@ -92,6 +93,7 @@ src/testFixtures/java/com/ejafi/egmd/
 
 src/test/java/com/ejafi/egmd/
 ├── dimension/
+│   ├── BedGuardTest.java
 │   ├── MiningDimensionTest.java
 │   └── PlayerRelocatorTest.java
 └── portal/
@@ -107,8 +109,11 @@ src/test/java/com/ejafi/egmd/
 src/gameTest/java/com/ejafi/egmd/
 ├── GameTestTemplates.java                 # Template name constants (EMPTY_7X7X7)
 ├── dimension/
+│   ├── BedGuardGameTests.java
 │   ├── HostileMobGuardGameTests.java
 │   └── PlayerRelocatorGameTests.java
+├── pearl/
+│   └── PearlBlockGameTests.java
 └── portal/
     └── PortalGameTests.java
 ```
@@ -144,12 +149,12 @@ When it lights a frame, the handler cancels the click on both sides so the clien
 | Rule | `PortalRoute` | Effect |
 |---|---|---|
 | `resolveDestination` maps the Overworld to the portal's mining dimension and that mining dimension back to the Overworld. A portal in any other dimension leads nowhere. | `Unlinked` | Nothing |
-| `HostileMobGuard.admits` refuses a hostile mob, or anything carrying one, bound for a mining dimension. | `Refused` | Nothing |
+| `HostileMobGuard.admits` refuses a hostile mob other than the Wither, or anything carrying one, bound for a mining dimension. | `Refused` | Nothing |
 | Otherwise | `Travel` with the destination | The steps below |
 
 1. The entity's X and Z are scaled by the two dimensions' coordinate scales and clamped to the destination's world border.
 2. `computeArrivalTarget` builds the `ArrivalTarget`. A mining dimension gives `OnFlatSurface` at `MiningDimension.computeSurfaceY()`. The Overworld gives `OnTerrain` at the scaled position.
-3. `ExitPortalFinder` runs the POI search for an existing portal of the same variant in a square of radius `max(16, portalSearchRadius / coordinateScale)`, taking the nearest and then the lowest.
+3. `ExitPortalFinder` runs the POI search for an existing portal of the same variant in a square of radius `max(16, portalSearchRadius / coordinateScale)`. It keeps only POI positions that hold the variant's own portal block, so a stale POI is skipped, and takes the nearest and then the lowest.
 4. When none exists, `ExitPortalFinder` has `PortalPositionFinder` pick a site and `PortalStructureBuilder` build the portal there with the corners described below. When no site exists, the traveler sees the no-safe-location message and stays put.
 5. `PortalExitSelector` picks where the traveler appears.
 
@@ -185,7 +190,9 @@ A move to the Overworld spawn takes the spawn column's `MOTION_BLOCKING_NO_LEAVE
 
 ### Hostile mobs, beds, and raids
 
-The biomes spawn no mobs. `HostileMobGuard` also cancels, on the server, any `EntityJoinLevelEvent` in a mining dimension whose entity or passengers include an `Enemy`, so mobs from spawners, commands, and portals are all stopped. Every mining dimension type sets `bed_works` and `has_raids` to false.
+The biomes spawn no mobs. `HostileMobGuard` also cancels, on the server, any `EntityJoinLevelEvent` in a mining dimension whose entity or passengers include an `Enemy` other than a `WitherBoss`, so mobs from spawners, commands, and portals are all stopped. The Wither is exempt so that one a player summons inside a mining dimension is not canceled after its skulls and Soul Sand are used up. A Wither never arrives through a portal, because vanilla `WitherBoss.canUsePortal` returns false and it cannot ride anything. A Wither carrying any other hostile mob is still refused.
+
+Every mining dimension type sets `bed_works` and `has_raids` to false. With `bed_works` false, vanilla `BedBlock.useWithoutItem` blows the bed up, and that method is the only path to the explosion. `BedGuard` handles the main-hand `PlayerInteractEvent.RightClickBlock` on both sides. When the pure `allowsUse` decision refuses a `BedBlock` in a mining dimension and vanilla would use the bed, it cancels the click with `InteractionResult.SUCCESS`, and the server shows `message.egmd.bed.refused` on the action bar. Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard` mirrors that check from `ServerPlayerGameMode.useItemOn` and leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
 
 ### Registration
 
@@ -203,7 +210,7 @@ Every file a data provider can produce comes from `./gradlew runData`, which wri
 
 | Bus | Subscribers |
 |---|---|
-| Game bus, through `@EventBusSubscriber` | `PortalIgnitionHandler`, `HostileMobGuard`, `PlayerRelocator` |
+| Game bus, through `@EventBusSubscriber` | `PortalIgnitionHandler`, `HostileMobGuard`, `BedGuard`, `PlayerRelocator` |
 | Mod bus, through `@EventBusSubscriber` | `DataGatherer` (`GatherDataEvent`) |
 | Mod bus, through `modEventBus.addListener` | `PearlBlocks` (creative tab), `PortalClient` (block colors, particle providers) |
 

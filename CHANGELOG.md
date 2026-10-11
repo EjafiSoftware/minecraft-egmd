@@ -1,20 +1,23 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.0]
 
 ### Changed
-- A portal frame lights only when its four corners hold the portal's corner blocks. The Mining Portal takes Dirt, Gravel, or Sand, the Nether Mining Portal takes Cobblestone or Stone, and the End Mining Portal takes Netherrack, Obsidian, or Prismarine. A tunnel cut through Netherrack or End Stone no longer makes a frame that lights.
-- Portals that are already lit keep working without corner blocks.
-- A portal built on the other side copies the corner blocks of the portal it was reached from, and uses Dirt, Cobblestone, or Netherrack for any corner that does not hold a corner block.
-- A portal built on the other side uses Dirt in place of Sand or Gravel at its bottom corners, so they cannot fall out of the frame.
+- Portal frames need corner blocks to light. Portals that are already lit keep working.
+- Beds in a mining dimension no longer explode.
+- Nether Mining has less Ancient Debris.
+- The Pearl Block is in the Natural Blocks tab.
 
 ### Added
-- Clicking a frame with the wrong corners in the Overworld shows which corner blocks the portal needs.
-- Infested blocks count as their host block in a frame's corners.
+- Silk Touch and Fortune work on the Pearl Block.
+- A frame with the wrong corners shows which corner blocks it needs.
+
+### Fixed
+- A Wither built in a mining dimension no longer disappears.
+- Portals no longer link to a portal location that holds a different block.
 
 ### Removed
 - The `/egmd regenerate` command.
-- Portals and logins no longer have a closed-for-regeneration state.
 
 ## [1.3.0]
 

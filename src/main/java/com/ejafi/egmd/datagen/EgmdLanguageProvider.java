@@ -33,6 +33,7 @@ final class EgmdLanguageProvider extends LanguageProvider {
         add(
                 DimensionMessages.LOGIN_RELOCATED,
                 "This mining dimension changed while you were away, so you have been moved somewhere safe.");
+        add(DimensionMessages.BED_REFUSED, "You can't sleep in a mining dimension.");
 
         add(PortalMessages.NO_SAFE_LOCATION, "The portal could not find a safe place to open on the other side.");
         add(PortalMessages.MINING_PORTAL_CORNERS, "Mining Portal corners must be dirt, gravel, or sand.");

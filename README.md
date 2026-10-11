@@ -1,16 +1,18 @@
 # Ejafi Games Mining Dimensions (EGMD)
 
-Ejafi Games Mining Dimensions (EGMD) is a NeoForge mod for Minecraft 1.21.1 that adds three mining dimensions to your world. Each one is a flat world packed with ore, so you can gather resources without tearing up your main world.
+EGMD is a NeoForge mod for Minecraft 1.21.1 that adds three flat, ore-rich mining dimensions, so you can mine without damaging your main world.
 
 ## Player Guide
 
-### Reaching the Mining Dimensions
+### Portals
 
-Build a portal frame in the Overworld the same way as a Nether portal, with an inner area from 2x3 up to 21x21. Fill the four corners of the frame with the dimension's corner blocks from the table below, and light it with **Flint and Steel** or a **Fire Charge**. You can also light it by clicking a fire burning on the bottom of the frame. Each portal leads from the Overworld to its own mining dimension, and the matching portal on the other side takes you back. A portal lights only in the Overworld or in its own mining dimension.
+Build a frame like a Nether portal, with an inside from 2x3 to 21x21, and put one of the dimension's corner blocks in each of its four corners. Light it by clicking the frame, or a fire burning on the bottom of the frame, with Flint and Steel or a Fire Charge. A portal leads from the Overworld to its mining dimension and lights only in those two dimensions. In the Overworld, a frame with the wrong corners tells you which corner blocks it needs.
 
-A frame without the right corners does not light, and lighting it in the Overworld tells you which corner blocks it needs. The corners are needed only to light a portal, so a portal that is already lit keeps working.
+Corners are needed only to light a portal. This is a protection against accidental portals in dimensions like Nether Mining or End Mining, where every tunnel is a frame. A lit portal keeps working without the corners.
 
-When no portal exists on the other side, one is built for you with the same corner blocks as the portal you came through. A corner that holds anything other than a corner block is built with the dimension's default corner block instead. In a mining dimension the new portal sits on the flat surface. If no open spot is nearby, the portal clears room for itself, but it never replaces chests, furnaces, and similar blocks, other portals, or unbreakable blocks. If it still finds no safe place, it tells you so and doesn't send you through. You arrive in front of the portal, behind it if the front is blocked, or inside it as a last resort.
+When the other side has no portal, the mod builds one with the corner blocks of the portal you came through. It uses the dimension's default corner block for any corner that doesn't qualify, and for Sand, Red Sand, or Gravel in a bottom corner. In a mining dimension the portal sits on the flat surface. It clears room for itself when needed, but never replaces another portal, an unbreakable block, or a block that stores data, such as a chest, sign, or spawner.
+
+When no safe spot exists, you stay where you are and see a message. Otherwise you arrive in front of the portal, behind it if the front is blocked, or inside it if both sides are blocked.
 
 ### The Dimensions
 
@@ -22,34 +24,29 @@ When no portal exists on the other side, one is built for you with the same corn
 
 Infested blocks count as the block they imitate, in both the frame and the corners.
 
-**Overworld Mining** places Coal, Iron, Copper, Gold, Redstone, Lapis Lazuli, Diamond, and Emerald ore at far higher rates than the Overworld, in both their stone and deepslate forms. It also has patches of Dirt, Gravel, Granite, Diorite, Andesite, and Tuff, and Amethyst Geodes. It is always midday there.
+**Overworld Mining** has far more Coal, Iron, Copper, Gold, Redstone, Lapis Lazuli, Diamond, and Emerald ore than the Overworld, in stone and deepslate forms, along with Amethyst Geodes and patches of Dirt, Gravel, Granite, Diorite, Andesite, and Tuff. It is always midday there.
 
-**Nether Mining** places Nether Gold Ore, Nether Quartz Ore, and Ancient Debris, with patches of Magma Blocks and Soul Sand. As in the Nether, one block of travel equals eight in the Overworld, water evaporates, and Respawn Anchors work.
+**Nether Mining** has Nether Gold Ore, Nether Quartz Ore, Ancient Debris, Magma Blocks, and Soul Sand. As in the Nether, one block of travel equals eight in the Overworld, water evaporates, and Respawn Anchors work.
 
-**End Mining** places veins of Prismarine mixed with Prismarine Bricks and Dark Prismarine, along with Sea Lanterns and Pearl Blocks. A Pearl Block is unique to this mod and drops 1 to 4 Ender Pearls when mined with a pickaxe.
+**End Mining** has Prismarine veins mixed with Prismarine Bricks and Dark Prismarine, along with Sea Lanterns and Pearl Blocks. A Pearl Block mined with a pickaxe drops 1 to 4 Ender Pearls, plus up to one more per Fortune level, or drops itself with Silk Touch.
 
-### Tips
+### Rules
 
-* No mobs spawn in the mining dimensions, and hostile mobs can't enter them by any route, including portals.
-* Beds explode if you try to sleep in a mining dimension, so go back to the Overworld to sleep.
-* Raids can't start in a mining dimension.
-* If you log in inside solid blocks in a mining dimension, you're moved up to the first space where you fit, or to the Overworld spawn when there's none above.
+These rules apply in every mining dimension.
 
----
+* No mobs spawn, and hostile mobs can't enter. A Wither you build there is the exception.
+* Beds don't work, and they don't explode.
+* Raids can't start.
+* If you log in inside solid blocks, you move up to the first open space, or to the Overworld spawn if there is none.
 
 ## Configuration
 
-`config/egmd-common.toml` has one setting, which you can also change from the mod's config screen in the Mods menu.
+`config/egmd-common.toml` has one setting, which you can also change from the mod's config screen.
 
 | Setting | Default | Range | Meaning |
 |---|---|---|---|
-| `portalSearchRadius` | 128 | 16 to 512 | How far, in blocks, a portal looks for an existing portal on the other side before building a new one. When the other side is Nether Mining, the radius is divided by 8, with a minimum of 16. |
-
----
+| `portalSearchRadius` | 128 | 16 to 512 | Radius in blocks to search for an existing portal before building one. Nether Mining divides it by 8, with a minimum of 16. Large values cause a lag spike the first time a portal searches an unexplored area. |
 
 ## Development
 
-[AGENTS.md](AGENTS.md) covers the build, the tests, and the source layout.
-
-### Mapping Names
-EGMD uses the official Mojang mapping names, with Parchment parameter names. Refer to the [Mojang License](https://github.com/NeoForged/NeoForm/blob/main/Mojang.md) for details.
+[AGENTS.md](AGENTS.md) covers the build, the tests, and the source layout. EGMD uses Mojang's official mapping names with Parchment parameter names, under the [Mojang License](https://github.com/NeoForged/NeoForm/blob/main/Mojang.md).
