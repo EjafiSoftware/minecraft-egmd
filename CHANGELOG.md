@@ -3,30 +3,39 @@
 ## [1.3.0]
 
 ### Fixed
-- Fire Charges are now used up when they light a portal
-- Spectators can no longer light portals, and adventure mode's building rules now apply to lighting them
-- Frames that include Infested Cobblestone now light
-- Water and other fluids can no longer be placed in or flow into portal blocks
+- Lighting a portal with a Fire Charge uses up the Fire Charge.
+- Spectators cannot light portals.
+- Adventure mode's building rules apply to lighting portals.
+- Frames that include Infested Cobblestone light.
+- Fluids cannot be placed in or flow into portal blocks.
 
 ### Changed
-- A portal now lights and leads only between the Overworld and its own mining dimension, so a frame built anywhere else stays unlit
-- Beds now explode and raids can no longer start in Overworld Mining, as in the other mining dimensions
-- Portals built in a mining dimension now sit on its flat surface
-- When no open site is near the destination, a portal now clears room for itself there, but never replaces chests, furnaces, and similar blocks, other portals, or unbreakable blocks
-- Arriving entities now land in front of the portal, behind it if the front is blocked, or inside it as a last resort
-- `/egmd regenerate` now moves players to clear ground at the Overworld spawn, reports how many players it moved, and fails with a count of any players it could not move
-- End Mining prismarine veins now mix Prismarine, Prismarine Bricks, and Dark Prismarine instead of placing only Prismarine
-- The portal search radius comment in the config file no longer repeats the default value, which NeoForge already lists below it
+- A portal links only the Overworld and its own mining dimension.
+- A frame built in any other dimension does not light.
+- Beds explode in Overworld Mining, as they do in the other mining dimensions.
+- Raids cannot start in Overworld Mining.
+- A portal built in a mining dimension sits on the dimension's flat surface.
+- A portal clears room for itself when no open site is near its destination.
+- A portal never replaces containers, other portals, or unbreakable blocks when it clears room.
+- An arriving entity lands in front of the portal.
+- An arriving entity lands behind the portal when the front is blocked, and inside it when both sides are blocked.
+- `/egmd regenerate` moves players to clear ground at the Overworld spawn.
+- `/egmd regenerate` reports how many players it moved.
+- `/egmd regenerate` fails and reports a count when it cannot move every player.
+- End Mining prismarine veins mix Prismarine, Prismarine Bricks, and Dark Prismarine.
 
 ### Added
-- Hostile mobs, and anything carrying one, can no longer enter a mining dimension by any route, including portals
-- `/egmd regenerate` now closes the dimension's portals until the server stops, and a portal into a closed dimension says so
-- Players who log in to a dimension closed for regeneration are moved to the Overworld spawn with a message saying why
-- Players who log in inside solid blocks in a mining dimension, such as after it is regenerated, are moved up to the first space where they fit, or to the Overworld spawn when there is none
-- Clicking a fire burning on the bottom of a frame now lights the portal
-- Lighting a portal now plays the igniter's sound
-- A portal that finds no safe place on the other side now says so
-- Portals have a new animated texture
+- Hostile mobs cannot enter a mining dimension.
+- An entity carrying a hostile mob cannot enter a mining dimension.
+- `/egmd regenerate` closes the dimension's portals until the server stops.
+- A portal into a closed dimension tells the player that the dimension is closed.
+- A player who logs in to a dimension closed for regeneration moves to the Overworld spawn and receives a message.
+- A player who logs in inside solid blocks in a mining dimension moves up to the first space that fits them.
+- A player who logs in inside solid blocks with no space above moves to the Overworld spawn.
+- Clicking a fire on the bottom of a frame lights the portal.
+- Lighting a portal plays the igniter's sound.
+- A portal tells the player when it finds no safe place on the other side.
+- Portals have an animated texture.
 
 ## [1.2.0]
 
