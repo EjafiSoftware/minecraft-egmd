@@ -1,0 +1,169 @@
+package com.ejafi.egmd.portal;
+
+import java.util.stream.Stream;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelWriter;
+import net.minecraft.world.level.block.BaseFireBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.InfestedBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
+
+final class MiningPortalShape {
+    static final int MIN_WIDTH = 2;
+    static final int MAX_WIDTH = 21;
+    static final int MIN_HEIGHT = 3;
+    static final int MAX_HEIGHT = 21;
+    static final int PORTAL_UPDATE_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+
+    private final BlockGetter level;
+    private final Axis axis;
+    private final Direction rightDir;
+    private final MiningPortalBlock portalBlock;
+    private final Block frameBlock;
+    private final BlockPos bottomLeft;
+    private final int width;
+    private final int height;
+    private final int portalBlockCount;
+
+    MiningPortalShape(BlockGetter level, BlockPos pos, Axis axis, MiningPortalBlock portalBlock) {
+        this.level = level;
+        this.axis = axis;
+        this.portalBlock = portalBlock;
+        this.frameBlock = portalBlock.getFrameBlock();
+        this.rightDir = axis == Axis.X ? Direction.WEST : Direction.SOUTH;
+        BlockPos foundBottomLeft = this.calculateBottomLeft(pos);
+        this.bottomLeft = foundBottomLeft == null ? pos : foundBottomLeft;
+        this.width = foundBottomLeft == null ? 0 : this.calculateWidth();
+        this.height = this.width == 0 ? 0 : this.calculateHeight();
+        this.portalBlockCount = this.isValid() ? this.countPortalBlocks() : 0;
+    }
+
+    private @Nullable BlockPos calculateBottomLeft(BlockPos pos) {
+        int lowestY = Math.max(this.level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
+        while (pos.getY() > lowestY && this.isEmpty(this.level.getBlockState(pos.below()))) {
+            pos = pos.below();
+        }
+
+        Direction oppositeDirection = this.rightDir.getOpposite();
+        int distance = this.getDistanceUntilEdge(pos, oppositeDirection) - 1;
+        return distance < 0 ? null : pos.relative(oppositeDirection, distance);
+    }
+
+    private int calculateWidth() {
+        int distance = this.getDistanceUntilEdge(this.bottomLeft, this.rightDir);
+        return distance >= MIN_WIDTH && distance <= MAX_WIDTH ? distance : 0;
+    }
+
+    private int getDistanceUntilEdge(BlockPos pos, Direction direction) {
+        var mutablePos = new BlockPos.MutableBlockPos();
+
+        for (int i = 0; i <= MAX_WIDTH; ++i) {
+            mutablePos.set(pos).move(direction, i);
+            BlockState state = this.level.getBlockState(mutablePos);
+            if (!this.isEmpty(state)) {
+                if (isFrame(state, this.frameBlock)) {
+                    return i;
+                }
+                break;
+            }
+
+            BlockState belowState = this.level.getBlockState(mutablePos.move(Direction.DOWN));
+            if (!isFrame(belowState, this.frameBlock)) {
+                break;
+            }
+        }
+
+        return 0;
+    }
+
+    private int calculateHeight() {
+        var mutablePos = new BlockPos.MutableBlockPos();
+        int distance = this.getDistanceUntilTop(mutablePos);
+        return distance >= MIN_HEIGHT && distance <= MAX_HEIGHT && this.hasTopFrame(mutablePos, distance)
+                ? distance
+                : 0;
+    }
+
+    private boolean hasTopFrame(BlockPos.MutableBlockPos mutablePos, int currentHeight) {
+        for (int i = 0; i < this.width; ++i) {
+            mutablePos.set(this.bottomLeft).move(Direction.UP, currentHeight).move(this.rightDir, i);
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private int getDistanceUntilTop(BlockPos.MutableBlockPos mutablePos) {
+        for (int y = 0; y < MAX_HEIGHT; ++y) {
+            mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir.getOpposite(), 1);
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+                return y;
+            }
+
+            mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, this.width);
+            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+                return y;
+            }
+
+            for (int x = 0; x < this.width; ++x) {
+                mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, x);
+                if (!this.isEmpty(this.level.getBlockState(mutablePos))) {
+                    return y;
+                }
+            }
+        }
+
+        return MAX_HEIGHT;
+    }
+
+    private int countPortalBlocks() {
+        return (int) this.streamInterior()
+                .filter(pos -> this.level.getBlockState(pos).is(this.portalBlock))
+                .count();
+    }
+
+    private Stream<BlockPos> streamInterior() {
+        return BlockPos.betweenClosedStream(
+                this.bottomLeft,
+                this.bottomLeft.relative(Direction.UP, this.height - 1).relative(this.rightDir, this.width - 1));
+    }
+
+    private boolean isEmpty(BlockState state) {
+        return isOpenCell(state) || state.is(this.portalBlock);
+    }
+
+    static boolean isOpenCell(BlockState state) {
+        return state.isAir() || state.getBlock() instanceof BaseFireBlock;
+    }
+
+    boolean isValid() {
+        return this.width != 0 && this.height != 0;
+    }
+
+    boolean isEmptyFrame() {
+        return this.isValid() && this.portalBlockCount == 0;
+    }
+
+    static boolean isFrame(BlockState state, Block frameBlock) {
+        return resolveFrameHost(state).equals(frameBlock);
+    }
+
+    static Block resolveFrameHost(BlockState state) {
+        return state.getBlock() instanceof InfestedBlock infested ? infested.getHostBlock() : state.getBlock();
+    }
+
+    boolean isComplete() {
+        return this.isValid() && this.portalBlockCount == this.width * this.height;
+    }
+
+    void createPortalBlocks(LevelWriter writer) {
+        BlockState state = this.portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, this.axis);
+        this.streamInterior().forEach(pos -> writer.setBlock(pos, state, PORTAL_UPDATE_FLAGS));
+    }
+}
