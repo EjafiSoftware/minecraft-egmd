@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.0.0]
+
+### Changed
+- Portal frames need corner blocks to light. Portals that are already lit keep working.
+- Beds in a mining dimension no longer explode.
+- Nether Mining has less Ancient Debris.
+- The Pearl Block is in the Natural Blocks tab.
+
+### Added
+- Silk Touch and Fortune work on the Pearl Block.
+- A frame with the wrong corners shows which corner blocks it needs.
+
+### Fixed
+- A Wither built in a mining dimension no longer disappears.
+- Portals no longer link to a portal location that holds a different block.
+
+### Removed
+- The `/egmd regenerate` command.
+
 ## [1.3.0]
 
 ### Fixed

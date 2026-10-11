@@ -1,6 +1,9 @@
 package com.ejafi.egmd.portal;
 
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -33,28 +36,28 @@ final class MiningPortalShape {
         this.level = level;
         this.axis = axis;
         this.portalBlock = portalBlock;
-        this.frameBlock = portalBlock.getFrameBlock();
-        this.rightDir = axis == Axis.X ? Direction.WEST : Direction.SOUTH;
-        BlockPos foundBottomLeft = this.calculateBottomLeft(pos);
-        this.bottomLeft = foundBottomLeft == null ? pos : foundBottomLeft;
-        this.width = foundBottomLeft == null ? 0 : this.calculateWidth();
-        this.height = this.width == 0 ? 0 : this.calculateHeight();
-        this.portalBlockCount = this.isValid() ? this.countPortalBlocks() : 0;
+        frameBlock = portalBlock.getFrameBlock();
+        rightDir = axis == Axis.X ? Direction.WEST : Direction.SOUTH;
+        BlockPos foundBottomLeft = calculateBottomLeft(pos);
+        bottomLeft = foundBottomLeft == null ? pos : foundBottomLeft;
+        width = foundBottomLeft == null ? 0 : calculateWidth();
+        height = width == 0 ? 0 : calculateHeight();
+        portalBlockCount = isValid() ? countPortalBlocks() : 0;
     }
 
     private @Nullable BlockPos calculateBottomLeft(BlockPos pos) {
-        int lowestY = Math.max(this.level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
-        while (pos.getY() > lowestY && this.isEmpty(this.level.getBlockState(pos.below()))) {
+        int lowestY = Math.max(level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
+        while (pos.getY() > lowestY && isEmpty(level.getBlockState(pos.below()))) {
             pos = pos.below();
         }
 
-        Direction oppositeDirection = this.rightDir.getOpposite();
-        int distance = this.getDistanceUntilEdge(pos, oppositeDirection) - 1;
+        Direction oppositeDirection = rightDir.getOpposite();
+        int distance = getDistanceUntilEdge(pos, oppositeDirection) - 1;
         return distance < 0 ? null : pos.relative(oppositeDirection, distance);
     }
 
     private int calculateWidth() {
-        int distance = this.getDistanceUntilEdge(this.bottomLeft, this.rightDir);
+        int distance = getDistanceUntilEdge(bottomLeft, rightDir);
         return distance >= MIN_WIDTH && distance <= MAX_WIDTH ? distance : 0;
     }
 
@@ -63,16 +66,16 @@ final class MiningPortalShape {
 
         for (int i = 0; i <= MAX_WIDTH; ++i) {
             mutablePos.set(pos).move(direction, i);
-            BlockState state = this.level.getBlockState(mutablePos);
-            if (!this.isEmpty(state)) {
-                if (isFrame(state, this.frameBlock)) {
+            BlockState state = level.getBlockState(mutablePos);
+            if (!isEmpty(state)) {
+                if (isFrame(state, frameBlock)) {
                     return i;
                 }
                 break;
             }
 
-            BlockState belowState = this.level.getBlockState(mutablePos.move(Direction.DOWN));
-            if (!isFrame(belowState, this.frameBlock)) {
+            BlockState belowState = level.getBlockState(mutablePos.move(Direction.DOWN));
+            if (!isFrame(belowState, frameBlock)) {
                 break;
             }
         }
@@ -82,16 +85,14 @@ final class MiningPortalShape {
 
     private int calculateHeight() {
         var mutablePos = new BlockPos.MutableBlockPos();
-        int distance = this.getDistanceUntilTop(mutablePos);
-        return distance >= MIN_HEIGHT && distance <= MAX_HEIGHT && this.hasTopFrame(mutablePos, distance)
-                ? distance
-                : 0;
+        int distance = getDistanceUntilTop(mutablePos);
+        return distance >= MIN_HEIGHT && distance <= MAX_HEIGHT && hasTopFrame(mutablePos, distance) ? distance : 0;
     }
 
     private boolean hasTopFrame(BlockPos.MutableBlockPos mutablePos, int currentHeight) {
-        for (int i = 0; i < this.width; ++i) {
-            mutablePos.set(this.bottomLeft).move(Direction.UP, currentHeight).move(this.rightDir, i);
-            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+        for (int i = 0; i < width; ++i) {
+            mutablePos.set(bottomLeft).move(Direction.UP, currentHeight).move(rightDir, i);
+            if (!isFrame(level.getBlockState(mutablePos), frameBlock)) {
                 return false;
             }
         }
@@ -101,19 +102,19 @@ final class MiningPortalShape {
 
     private int getDistanceUntilTop(BlockPos.MutableBlockPos mutablePos) {
         for (int y = 0; y < MAX_HEIGHT; ++y) {
-            mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir.getOpposite(), 1);
-            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+            mutablePos.set(bottomLeft).move(Direction.UP, y).move(rightDir.getOpposite(), 1);
+            if (!isFrame(level.getBlockState(mutablePos), frameBlock)) {
                 return y;
             }
 
-            mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, this.width);
-            if (!isFrame(this.level.getBlockState(mutablePos), this.frameBlock)) {
+            mutablePos.set(bottomLeft).move(Direction.UP, y).move(rightDir, width);
+            if (!isFrame(level.getBlockState(mutablePos), frameBlock)) {
                 return y;
             }
 
-            for (int x = 0; x < this.width; ++x) {
-                mutablePos.set(this.bottomLeft).move(Direction.UP, y).move(this.rightDir, x);
-                if (!this.isEmpty(this.level.getBlockState(mutablePos))) {
+            for (int x = 0; x < width; ++x) {
+                mutablePos.set(bottomLeft).move(Direction.UP, y).move(rightDir, x);
+                if (!isEmpty(level.getBlockState(mutablePos))) {
                     return y;
                 }
             }
@@ -123,19 +124,18 @@ final class MiningPortalShape {
     }
 
     private int countPortalBlocks() {
-        return (int) this.streamInterior()
-                .filter(pos -> this.level.getBlockState(pos).is(this.portalBlock))
+        return (int) streamInterior()
+                .filter(pos -> level.getBlockState(pos).is(portalBlock))
                 .count();
     }
 
     private Stream<BlockPos> streamInterior() {
         return BlockPos.betweenClosedStream(
-                this.bottomLeft,
-                this.bottomLeft.relative(Direction.UP, this.height - 1).relative(this.rightDir, this.width - 1));
+                bottomLeft, bottomLeft.relative(Direction.UP, height - 1).relative(rightDir, width - 1));
     }
 
     private boolean isEmpty(BlockState state) {
-        return isOpenCell(state) || state.is(this.portalBlock);
+        return isOpenCell(state) || state.is(portalBlock);
     }
 
     static boolean isOpenCell(BlockState state) {
@@ -143,27 +143,38 @@ final class MiningPortalShape {
     }
 
     boolean isValid() {
-        return this.width != 0 && this.height != 0;
+        return width != 0 && height != 0;
     }
 
     boolean isEmptyFrame() {
-        return this.isValid() && this.portalBlockCount == 0;
+        return isValid() && portalBlockCount == 0;
     }
 
     static boolean isFrame(BlockState state, Block frameBlock) {
-        return resolveFrameHost(state).equals(frameBlock);
+        return resolveInfestedHost(state).equals(frameBlock);
     }
 
-    static Block resolveFrameHost(BlockState state) {
+    static Block resolveInfestedHost(BlockState state) {
         return state.getBlock() instanceof InfestedBlock infested ? infested.getHostBlock() : state.getBlock();
     }
 
     boolean isComplete() {
-        return this.isValid() && this.portalBlockCount == this.width * this.height;
+        return isValid() && portalBlockCount == width * height;
+    }
+
+    Map<PortalCorner, BlockState> readCorners() {
+        if (!isValid()) {
+            return Map.of();
+        }
+
+        BlockPos lowest = BlockPos.min(bottomLeft, bottomLeft.relative(rightDir, width - 1));
+        return PortalCorner.locateAll(new BlockUtil.FoundRectangle(lowest, width, height), axis).entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey, entry -> level.getBlockState(entry.getValue())));
     }
 
     void createPortalBlocks(LevelWriter writer) {
-        BlockState state = this.portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, this.axis);
-        this.streamInterior().forEach(pos -> writer.setBlock(pos, state, PORTAL_UPDATE_FLAGS));
+        BlockState state = portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
+        streamInterior().forEach(pos -> writer.setBlock(pos, state, PORTAL_UPDATE_FLAGS));
     }
 }

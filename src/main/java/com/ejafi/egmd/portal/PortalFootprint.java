@@ -1,7 +1,9 @@
 package com.ejafi.egmd.portal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
+import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -63,6 +65,11 @@ record PortalFootprint(BlockPos origin, Axis axis) {
 
     List<BlockPos> listPlatformCells() {
         return listCells(PLATFORM);
+    }
+
+    Map<PortalCorner, BlockPos> locateCorners() {
+        return PortalCorner.locateAll(
+                new BlockUtil.FoundRectangle(origin, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT), axis);
     }
 
     private List<BlockPos> listPlaneCells() {

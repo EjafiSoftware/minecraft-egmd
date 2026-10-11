@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-10T18:35:01.8175736	Registries
+// 1.21.1	2026-10-10T22:27:05.5062649	Registries
 a60305150f4aa1518468013fc2a5115714f8fe2a data/egmd/dimension/end_mining.json
 e78d043df2bf0e691b309cd9192e14eccbcfb3ef data/egmd/dimension/nether_mining.json
 ee564de65e0434258236eb155ec388389e14f2cd data/egmd/dimension/overworld_mining.json
@@ -8,7 +8,7 @@ ee564de65e0434258236eb155ec388389e14f2cd data/egmd/dimension/overworld_mining.js
 ea9f108f6316c2d6b044d5df85a6ae379c3e4fd4 data/egmd/worldgen/biome/end_mining_wastes.json
 e11be721b2a346ca7eff1a7ef0d2d265dbd5d4c6 data/egmd/worldgen/biome/mining_plains.json
 695cb1cc014b615a5bd9e7602ceaddd106ec8d3b data/egmd/worldgen/biome/nether_mining_wastes.json
-00ea009845cc4ea887a8e26fcd4853be6aab8fc2 data/egmd/worldgen/configured_feature/ore_ancient_debris_mining.json
+cb3322b92d7741a3ad01238ae144177f782d4472 data/egmd/worldgen/configured_feature/ore_ancient_debris_mining.json
 c6a35dae5858e7934b211f35ecd8a952502085ef data/egmd/worldgen/configured_feature/ore_coal_mining.json
 0e36d2309edf95385cf1a86be9349087d7245fc3 data/egmd/worldgen/configured_feature/ore_copper_mining.json
 3710e5017e1a61e00d788be9309ab9441a72adc0 data/egmd/worldgen/configured_feature/ore_diamond_mining.json
@@ -22,7 +22,7 @@ f9bdff18733059b60aa666aee90fbe5bf79c6cc9 data/egmd/worldgen/configured_feature/o
 ded9ddffe9704ca5bde6db5cb99613920857983a data/egmd/worldgen/configured_feature/ore_quartz_nether_mining.json
 af8072e1d22dfec2b7828f85242a4dcdf9ed127b data/egmd/worldgen/configured_feature/ore_redstone_mining.json
 46dbea64efa0d3373b21bba3d66d9bda6cdcfe29 data/egmd/worldgen/configured_feature/ore_sea_lantern_mining.json
-bdebc94cdc72ce469e109dd647ad378cbba323f9 data/egmd/worldgen/placed_feature/ore_ancient_debris_mining.json
+a8ec120032c92504697356f16311031d1f7ca980 data/egmd/worldgen/placed_feature/ore_ancient_debris_mining.json
 5ed5730cf88f340be39415b3b801569312dc3740 data/egmd/worldgen/placed_feature/ore_coal_mining.json
 3a27a33aa4b75abbfb4f2f274f853d405581938a data/egmd/worldgen/placed_feature/ore_copper_mining.json
 7b9df6cb5458ae79db00f8fd48997cd0722d0a30 data/egmd/worldgen/placed_feature/ore_diamond_mining.json

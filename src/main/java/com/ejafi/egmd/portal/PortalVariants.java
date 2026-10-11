@@ -7,13 +7,31 @@ import net.minecraft.world.level.material.MapColor;
 
 public final class PortalVariants {
     public static final PortalVariant OVERWORLD = new PortalVariant(
-            "mining_portal", MiningDimension.OVERWORLD, Blocks.COBBLESTONE, MapColor.COLOR_PURPLE, 0x00FF00);
+            "mining_portal",
+            MiningDimension.OVERWORLD,
+            Blocks.COBBLESTONE,
+            Blocks.DIRT,
+            PortalMessages.MINING_PORTAL_CORNERS,
+            MapColor.COLOR_PURPLE,
+            0x00FF00);
 
     public static final PortalVariant NETHER = new PortalVariant(
-            "nether_mining_portal", MiningDimension.NETHER, Blocks.NETHERRACK, MapColor.COLOR_RED, 0xFF0000);
+            "nether_mining_portal",
+            MiningDimension.NETHER,
+            Blocks.NETHERRACK,
+            Blocks.COBBLESTONE,
+            PortalMessages.NETHER_MINING_PORTAL_CORNERS,
+            MapColor.COLOR_RED,
+            0xFF0000);
 
     public static final PortalVariant END = new PortalVariant(
-            "end_mining_portal", MiningDimension.END, Blocks.END_STONE, MapColor.COLOR_YELLOW, 0xFFFF00);
+            "end_mining_portal",
+            MiningDimension.END,
+            Blocks.END_STONE,
+            Blocks.NETHERRACK,
+            PortalMessages.END_MINING_PORTAL_CORNERS,
+            MapColor.COLOR_YELLOW,
+            0xFFFF00);
 
     static final List<PortalVariant> ALL = List.of(OVERWORLD, NETHER, END);
 

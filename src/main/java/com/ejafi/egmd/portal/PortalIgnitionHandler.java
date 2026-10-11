@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -58,8 +59,17 @@ public final class PortalIgnitionHandler {
         }
 
         Ignition ignition = found.orElseThrow();
-        Optional<MiningPortalShape> shape = findEmptyFrame(level, ignition);
+        List<MiningPortalShape> emptyFrames = findEmptyFrames(level, ignition);
+        if (emptyFrames.isEmpty()) {
+            return;
+        }
+
+        PortalCornerMaterials materials = PortalCornerMaterials.create(ignition.variant());
+        Optional<MiningPortalShape> shape = emptyFrames.stream()
+                .filter(frame -> materials.acceptsAll(frame.readCorners()))
+                .findFirst();
         if (shape.isEmpty()) {
+            showCornerHint(event, ignition.variant());
             return;
         }
 
@@ -85,7 +95,7 @@ public final class PortalIgnitionHandler {
         return stack.is(PORTAL_IGNITERS) || stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT);
     }
 
-    private record Ignition(BlockPos portalPos, Direction face, MiningPortalBlock portalBlock) {}
+    private record Ignition(BlockPos portalPos, Direction face, PortalVariant variant) {}
 
     private static boolean mayIgnite(PlayerInteractEvent.RightClickBlock event, Ignition ignition) {
         Player player = event.getEntity();
@@ -94,7 +104,7 @@ public final class PortalIgnitionHandler {
                 && player.mayUseItemAt(ignition.portalPos(), ignition.face(), event.getItemStack())
                 && MiningPortalBlock.resolveDestination(
                                 event.getLevel().dimension(),
-                                ignition.portalBlock().getDimensionKey())
+                                ignition.variant().dimension().levelKey())
                         != null;
     }
 
@@ -102,27 +112,35 @@ public final class PortalIgnitionHandler {
         BlockPos clickedPos = hit.getBlockPos();
         BlockState clicked = level.getBlockState(clickedPos);
         if (clicked.getBlock() instanceof BaseFireBlock) {
-            return findPortalForFrame(level.getBlockState(clickedPos.below()))
-                    .map(portalBlock -> new Ignition(clickedPos, Direction.UP, portalBlock));
+            return findVariantForFrame(level.getBlockState(clickedPos.below()))
+                    .map(variant -> new Ignition(clickedPos, Direction.UP, variant));
         }
 
         Direction face = hit.getDirection();
         BlockPos portalPos = clickedPos.relative(face);
-        return findPortalForFrame(clicked)
-                .filter(portalBlock -> MiningPortalShape.isOpenCell(level.getBlockState(portalPos)))
-                .map(portalBlock -> new Ignition(portalPos, face, portalBlock));
+        return findVariantForFrame(clicked)
+                .filter(variant -> MiningPortalShape.isOpenCell(level.getBlockState(portalPos)))
+                .map(variant -> new Ignition(portalPos, face, variant));
     }
 
-    private static Optional<MiningPortalBlock> findPortalForFrame(BlockState frame) {
-        return Optional.ofNullable(VARIANTS_BY_FRAME.get(MiningPortalShape.resolveFrameHost(frame)))
-                .map(variant -> PortalRegisters.getPortalBlock(variant).get());
+    private static Optional<PortalVariant> findVariantForFrame(BlockState frame) {
+        return Optional.ofNullable(VARIANTS_BY_FRAME.get(MiningPortalShape.resolveInfestedHost(frame)));
     }
 
-    private static Optional<MiningPortalShape> findEmptyFrame(BlockGetter level, Ignition ignition) {
+    private static List<MiningPortalShape> findEmptyFrames(BlockGetter level, Ignition ignition) {
+        MiningPortalBlock portalBlock =
+                PortalRegisters.getPortalBlock(ignition.variant()).get();
         return PORTAL_AXES.stream()
-                .map(axis -> new MiningPortalShape(level, ignition.portalPos(), axis, ignition.portalBlock()))
+                .map(axis -> new MiningPortalShape(level, ignition.portalPos(), axis, portalBlock))
                 .filter(MiningPortalShape::isEmptyFrame)
-                .findFirst();
+                .toList();
+    }
+
+    private static void showCornerHint(PlayerInteractEvent.RightClickBlock event, PortalVariant variant) {
+        Level level = event.getLevel();
+        if (!level.isClientSide() && level.dimension().equals(Level.OVERWORLD)) {
+            event.getEntity().displayClientMessage(Component.translatable(variant.cornerHintKey()), true);
+        }
     }
 
     private static SoundEvent chargeIgniter(PlayerInteractEvent.RightClickBlock event) {

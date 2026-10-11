@@ -1,6 +1,7 @@
 package com.ejafi.egmd.portal;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
@@ -14,19 +15,19 @@ import net.minecraft.world.level.block.state.BlockState;
 
 final class ExitPortalFinder {
     private final ServerLevel level;
-    private final PortalVariant variant;
     private final ResourceKey<PoiType> poiTypeKey;
+    private final MiningPortalBlock portalBlock;
 
     ExitPortalFinder(ServerLevel level, PortalVariant variant) {
         this.level = level;
-        this.variant = variant;
         this.poiTypeKey = PortalRegisters.getPoiTypeKey(variant);
+        this.portalBlock = PortalRegisters.getPortalBlock(variant).get();
     }
 
-    Optional<BlockUtil.FoundRectangle> findOrCreate(ArrivalTarget target) {
+    Optional<BlockUtil.FoundRectangle> findOrCreate(ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
         return findPortalAround(target.footprint().origin())
                 .map(this::findRectangleAround)
-                .or(() -> createPortal(target));
+                .or(() -> createPortal(target, corners));
     }
 
     Optional<BlockPos> findPortalAround(BlockPos pos) {
@@ -37,7 +38,7 @@ final class ExitPortalFinder {
                 .getInSquare(holder -> holder.is(poiTypeKey), pos, radius, PoiManager.Occupancy.ANY)
                 .map(PoiRecord::getPos)
                 .filter(level.getWorldBorder()::isWithinBounds)
-                .filter(poiPos -> level.getBlockState(poiPos).hasProperty(MiningPortalBlock.AXIS))
+                .filter(poiPos -> level.getBlockState(poiPos).is(portalBlock))
                 .min(Comparator.<BlockPos>comparingDouble(poiPos -> poiPos.distSqr(pos))
                         .thenComparingInt(BlockPos::getY));
     }
@@ -58,9 +59,9 @@ final class ExitPortalFinder {
                 pos -> level.getBlockState(pos).equals(state));
     }
 
-    private Optional<BlockUtil.FoundRectangle> createPortal(ArrivalTarget target) {
-        var builder = new PortalStructureBuilder(
-                PortalRegisters.getPortalBlock(variant).get());
+    private Optional<BlockUtil.FoundRectangle> createPortal(
+            ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
+        var builder = new PortalStructureBuilder(portalBlock, corners);
         return PortalPositionFinder.find(level, target).map(site -> {
             builder.build(level, site);
             return new BlockUtil.FoundRectangle(

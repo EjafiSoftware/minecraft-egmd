@@ -82,8 +82,8 @@ final class MiningOres {
             placeUniformly(0, 128));
     private static final MiningOre ANCIENT_DEBRIS = new MiningOre(
             "ore_ancient_debris_mining",
-            new OreConfiguration(NETHER_STONE, Blocks.ANCIENT_DEBRIS.defaultBlockState(), 8),
-            16,
+            new OreConfiguration(NETHER_STONE, Blocks.ANCIENT_DEBRIS.defaultBlockState(), 4),
+            8,
             placeUniformly(0, 128));
 
     private static final MiningOre PRISMARINE = new MiningOre(

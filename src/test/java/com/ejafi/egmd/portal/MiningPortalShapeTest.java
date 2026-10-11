@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ejafi.egmd.BlockPosFaker;
 import java.util.List;
+import java.util.Map;
 import net.datafaker.Faker;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
@@ -225,19 +226,88 @@ class MiningPortalShapeTest {
     }
 
     @Test
-    void resolveFrameHost_returnsHostBlock_whenStateIsInfested() {
-        Block host = MiningPortalShape.resolveFrameHost(Blocks.INFESTED_COBBLESTONE.defaultBlockState());
+    void resolveInfestedHost_returnsHostBlock_whenStateIsInfested() {
+        Block host = MiningPortalShape.resolveInfestedHost(Blocks.INFESTED_COBBLESTONE.defaultBlockState());
 
         assertThat(host).isEqualTo(Blocks.COBBLESTONE);
     }
 
     @Test
-    void resolveFrameHost_returnsBlockItself_whenStateIsNotInfested() {
+    void resolveInfestedHost_returnsBlockItself_whenStateIsNotInfested() {
         Block block = FAKER.options().option(Blocks.COBBLESTONE, Blocks.NETHERRACK, Blocks.END_STONE);
 
-        Block host = MiningPortalShape.resolveFrameHost(block.defaultBlockState());
+        Block host = MiningPortalShape.resolveInfestedHost(block.defaultBlockState());
 
         assertThat(host).isEqualTo(block);
+    }
+
+    @Test
+    void readCorners_returnsStatesDiagonalToInterior_whenFrameIsMinimumSizeAlongXAxis() {
+        Map<PortalCorner, BlockState> corners = new PortalCornersFaker().generate();
+        frameBuilder
+                .withCorners(corners)
+                .build(
+                        new BlockUtil.FoundRectangle(
+                                interiorBottomLeft, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT),
+                        Axis.X);
+
+        var shape = new MiningPortalShape(level, interiorBottomLeft, Axis.X, portalBlock);
+
+        assertThat(shape.readCorners()).isEqualTo(corners);
+    }
+
+    @Test
+    void readCorners_returnsStatesDiagonalToInterior_whenFrameIsMinimumSizeAlongZAxis() {
+        Map<PortalCorner, BlockState> corners = new PortalCornersFaker().generate();
+        frameBuilder
+                .withCorners(corners)
+                .build(
+                        new BlockUtil.FoundRectangle(
+                                interiorBottomLeft, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT),
+                        Axis.Z);
+
+        var shape = new MiningPortalShape(level, interiorBottomLeft, Axis.Z, portalBlock);
+
+        assertThat(shape.readCorners()).isEqualTo(corners);
+    }
+
+    @Test
+    void readCorners_returnsStatesDiagonalToInterior_whenFrameIsLargerThanMinimum() {
+        Axis axis = PortalFootprintFaker.generateAxis();
+        Map<PortalCorner, BlockState> corners = new PortalCornersFaker().generate();
+        frameBuilder
+                .withCorners(corners)
+                .build(
+                        new BlockUtil.FoundRectangle(
+                                interiorBottomLeft,
+                                FAKER.number()
+                                        .numberBetween(
+                                                MiningPortalShape.MIN_WIDTH + 1, MiningPortalShape.MAX_WIDTH + 1),
+                                FAKER.number()
+                                        .numberBetween(
+                                                MiningPortalShape.MIN_HEIGHT + 1, MiningPortalShape.MAX_HEIGHT + 1)),
+                        axis);
+
+        var shape = new MiningPortalShape(level, interiorBottomLeft, axis, portalBlock);
+
+        assertThat(shape.readCorners()).isEqualTo(corners);
+    }
+
+    @Test
+    void readCorners_returnsNoCorners_whenFrameIsInvalid() {
+        var shape = new MiningPortalShape(level, interiorBottomLeft, PortalFootprintFaker.generateAxis(), portalBlock);
+
+        assertThat(shape.readCorners()).isEmpty();
+    }
+
+    @Test
+    void isComplete_reportsComplete_whenCornersAreAir() {
+        frameBuilder.withCornerBlock(Blocks.AIR).build(interior, Axis.X);
+        new MiningPortalShape(level, interiorBottomLeft, Axis.X, portalBlock).createPortalBlocks(level);
+
+        var shape = new MiningPortalShape(level, interiorBottomLeft, Axis.X, portalBlock);
+
+        assertThat(shape.isComplete()).isTrue();
     }
 
     private List<BlockPos> listInteriorCells() {

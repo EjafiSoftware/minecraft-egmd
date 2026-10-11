@@ -7,7 +7,6 @@ import net.datafaker.Faker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class PlayerRelocatorTest {
@@ -15,11 +14,6 @@ class PlayerRelocatorTest {
 
     private final ResourceKey<Level> mining =
             MiningDimensionFaker.pickRegistered().levelKey();
-
-    @AfterEach
-    void clearPendingRegenerations() {
-        PendingRegenerations.clear();
-    }
 
     @Test
     void chooseRescue_leavesPlayerInPlace_whenDimensionIsNotMining() {
@@ -29,15 +23,6 @@ class PlayerRelocatorTest {
                 PlayerRelocator.chooseRescue(vanilla, PlayerRelocatorTest::generateFooting);
 
         assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.Stay());
-    }
-
-    @Test
-    void chooseRescue_movesPlayerOutOfClosedDimension_whenDimensionAwaitsRegeneration() {
-        PendingRegenerations.mark(mining);
-
-        PlayerRelocator.LoginRescue rescue = PlayerRelocator.chooseRescue(mining, PlayerRelocatorTest::generateFooting);
-
-        assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.LeaveClosedDimension());
     }
 
     @Test

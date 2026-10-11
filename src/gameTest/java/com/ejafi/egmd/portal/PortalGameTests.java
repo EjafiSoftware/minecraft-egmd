@@ -3,9 +3,9 @@ package com.ejafi.egmd.portal;
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.GameTestTemplates;
 import com.ejafi.egmd.dimension.MiningDimensionFaker;
-import com.ejafi.egmd.dimension.PendingRegenerations;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import net.datafaker.Faker;
@@ -131,6 +131,24 @@ public final class PortalGameTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void find_portal_around_returns_farther_portal_when_nearer_poi_holds_vanilla_nether_portal(
+            GameTestHelper helper) {
+        BlockState portalState =
+                RegisteredPortalBlocks.getOverworldPortalBlock().defaultBlockState();
+        BlockPos stalePos = helper.absolutePos(ORIGIN);
+        helper.setBlock(ORIGIN, portalState);
+        helper.getLevel().getChunkAt(stalePos).setBlockState(stalePos, Blocks.NETHER_PORTAL.defaultBlockState(), false);
+        BlockPos portalPos = new BlockPos(3, 5, 3);
+        helper.setBlock(portalPos, portalState);
+
+        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD)
+                .findPortalAround(helper.absolutePos(FLOOR_CENTER));
+
+        helper.assertValueEqual(found, Optional.of(helper.absolutePos(portalPos)), "found portal");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void select_returns_back_side_when_front_is_blocked(GameTestHelper helper) {
         buildOpenPortalAtOrigin(helper, Axis.X);
         blockCells(helper, FRONT_EXIT);
@@ -185,12 +203,91 @@ public final class PortalGameTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
-    public static void on_right_click_block_fills_frame_with_portal_blocks_when_frame_is_valid(GameTestHelper helper) {
-        buildFrameAroundOrigin(helper);
+    public static void on_right_click_block_fills_frame_when_corners_are_default_corner_blocks(GameTestHelper helper) {
+        PortalVariant variant = pickVariant();
+        createFrameBuilder(helper, variant)
+                .withCornerBlock(variant.defaultCornerBlock())
+                .build(locateInteriorAtOrigin(helper), Axis.X);
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
-        assertInteriorHolds(helper, getPortalState(Axis.X));
+        assertInteriorHolds(helper, getPortalState(variant, Axis.X));
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_leaves_frame_empty_when_corners_are_frame_blocks(GameTestHelper helper) {
+        createFrameBuilder(helper, pickVariant()).build(locateInteriorAtOrigin(helper), Axis.X);
+
+        clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
+
+        assertInteriorHolds(helper, Blocks.AIR.defaultBlockState());
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_leaves_vanilla_item_use_alone_when_corners_are_frame_blocks(
+            GameTestHelper helper) {
+        createFrameBuilder(helper, pickVariant()).build(locateInteriorAtOrigin(helper), Axis.X);
+
+        PlayerInteractEvent.RightClickBlock event =
+                clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
+
+        helper.assertValueEqual(event.isCanceled(), false, "item use canceled");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_fills_frame_when_corners_are_four_different_corner_blocks(
+            GameTestHelper helper) {
+        createFrameBuilder(helper, PortalVariants.NETHER)
+                .withCorners(Map.of(
+                        PortalCorner.LOW_BOTTOM, Blocks.COBBLESTONE.defaultBlockState(),
+                        PortalCorner.HIGH_BOTTOM, Blocks.STONE.defaultBlockState(),
+                        PortalCorner.LOW_TOP, Blocks.MOSSY_COBBLESTONE.defaultBlockState(),
+                        PortalCorner.HIGH_TOP, Blocks.GRANITE.defaultBlockState()))
+                .build(locateInteriorAtOrigin(helper), Axis.X);
+
+        clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
+
+        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER, Axis.X));
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_fills_frame_when_corners_are_infested_corner_blocks(GameTestHelper helper) {
+        createFrameBuilder(helper, PortalVariants.NETHER)
+                .withCornerBlock(Blocks.INFESTED_STONE)
+                .build(locateInteriorAtOrigin(helper), Axis.X);
+
+        clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
+
+        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER, Axis.X));
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void create_rejects_corners_when_they_are_the_frame_block_of_any_variant(GameTestHelper helper) {
+        List<Boolean> accepted = PortalVariants.ALL.stream()
+                .map(variant -> PortalCornerMaterials.create(variant)
+                        .acceptsAll(PortalCornersFaker.fillCorners(
+                                variant.frameBlock().defaultBlockState())))
+                .toList();
+
+        helper.assertValueEqual(accepted, Collections.nCopies(PortalVariants.ALL.size(), false), "accepted");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void create_accepts_corners_when_they_are_the_default_corner_block_of_any_variant(
+            GameTestHelper helper) {
+        List<Boolean> accepted = PortalVariants.ALL.stream()
+                .map(variant -> PortalCornerMaterials.create(variant)
+                        .acceptsAll(PortalCornersFaker.fillCorners(
+                                variant.defaultCornerBlock().defaultBlockState())))
+                .toList();
+
+        helper.assertValueEqual(accepted, Collections.nCopies(PortalVariants.ALL.size(), true), "accepted");
         helper.succeed();
     }
 
@@ -366,24 +463,6 @@ public final class PortalGameTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
-    public static void choose_route_reports_closed_for_regeneration_when_destination_awaits_regeneration(
-            GameTestHelper helper) {
-        Cow cow = helper.spawn(EntityType.COW, SPAWN);
-        ResourceKey<Level> mining = MiningDimensionFaker.pickRegistered().levelKey();
-        PendingRegenerations.mark(mining);
-
-        MiningPortalBlock.PortalRoute route;
-        try {
-            route = MiningPortalBlock.chooseRoute(cow, mining);
-        } finally {
-            PendingRegenerations.clear();
-        }
-
-        helper.assertValueEqual(route, new MiningPortalBlock.PortalRoute.ClosedForRegeneration(), "route");
-        helper.succeed();
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void update_shape_returns_air_when_portal_state_is_placed_on_empty_cell(GameTestHelper helper) {
         BlockState placed = Block.updateFromNeighbourShapes(
                 getPortalState(PortalFootprintFaker.generateAxis()), helper.getLevel(), helper.absolutePos(ORIGIN));
@@ -399,9 +478,15 @@ public final class PortalGameTests {
     }
 
     private static BlockState getPortalState(Axis axis) {
-        return RegisteredPortalBlocks.getOverworldPortalBlock()
-                .defaultBlockState()
-                .setValue(MiningPortalBlock.AXIS, axis);
+        return getPortalState(PortalVariants.OVERWORLD, axis);
+    }
+
+    private static BlockState getPortalState(PortalVariant variant, Axis axis) {
+        return PortalRegisters.getPortalBlock(variant).get().defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
+    }
+
+    private static PortalVariant pickVariant() {
+        return FAKER.options().nextElement(PortalVariants.ALL);
     }
 
     private static int getVanillaPortalDelay(GameTestHelper helper) {
@@ -456,10 +541,13 @@ public final class PortalGameTests {
         return new PortalFootprint(helper.absolutePos(ORIGIN), axis);
     }
 
+    private static PortalFrameBuilder createFrameBuilder(GameTestHelper helper, PortalVariant variant) {
+        return new PortalFrameBuilder(helper.getLevel(), variant.frameBlock());
+    }
+
     private static void buildFrameAroundOrigin(GameTestHelper helper) {
-        new PortalFrameBuilder(
-                        helper.getLevel(),
-                        RegisteredPortalBlocks.getOverworldPortalBlock().getFrameBlock())
+        createFrameBuilder(helper, PortalVariants.OVERWORLD)
+                .withCornerBlock(PortalVariants.OVERWORLD.defaultCornerBlock())
                 .build(locateInteriorAtOrigin(helper), Axis.X);
     }
 
@@ -468,7 +556,9 @@ public final class PortalGameTests {
     }
 
     private static void buildPortal(GameTestHelper helper, PortalSite site) {
-        new PortalStructureBuilder(RegisteredPortalBlocks.getOverworldPortalBlock()).build(helper.getLevel(), site);
+        new PortalStructureBuilder(
+                        RegisteredPortalBlocks.getOverworldPortalBlock(), new PortalCornersFaker().generate())
+                .build(helper.getLevel(), site);
     }
 
     private static PortalExit selectExitAtOrigin(GameTestHelper helper) {
