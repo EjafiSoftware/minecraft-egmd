@@ -1,0 +1,33 @@
+{
+  "type": "egmd:overworld_mining_type",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "egmd:mining_plains",
+      "features": true,
+      "lakes": false,
+      "layers": [
+        {
+          "block": "minecraft:bedrock",
+          "height": 1
+        },
+        {
+          "block": "minecraft:deepslate",
+          "height": 64
+        },
+        {
+          "block": "minecraft:stone",
+          "height": 64
+        },
+        {
+          "block": "minecraft:dirt",
+          "height": 2
+        },
+        {
+          "block": "minecraft:grass_block",
+          "height": 1
+        }
+      ]
+    }
+  }
+}

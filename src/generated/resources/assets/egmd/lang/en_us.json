@@ -1,0 +1,23 @@
+{
+  "biome.egmd.end_mining_wastes": "End Mining Wastes",
+  "biome.egmd.mining_plains": "Mining Plains",
+  "biome.egmd.nether_mining_wastes": "Nether Mining Wastes",
+  "block.egmd.end_mining_portal": "End Mining Portal",
+  "block.egmd.mining_portal": "Mining Portal",
+  "block.egmd.nether_mining_portal": "Nether Mining Portal",
+  "block.egmd.pearl_block": "Pearl Block",
+  "command.egmd.regenerate.failure.not_egmd": "Only EGMD dimensions can be regenerated with this command.",
+  "command.egmd.regenerate.failure.not_evacuated": "%s player(s) could not be moved out of %s. Its portals are closed, but players are still inside, so do not delete its folder yet.",
+  "command.egmd.regenerate.player_moved": "The dimension is being regenerated. You have been moved to the Overworld.",
+  "command.egmd.regenerate.success.evacuated": "Moved %s player(s) out of %s. Its portals stay closed until the server stops.",
+  "command.egmd.regenerate.success.instructions.step1": "1. Stop the server.",
+  "command.egmd.regenerate.success.instructions.step2": "2. Delete the folder: %s",
+  "command.egmd.regenerate.success.instructions.step3": "3. Restart the server.",
+  "command.egmd.regenerate.success.instructions.title": "To complete regeneration:",
+  "egmd.configuration.portalSearchRadius": "Portal Search Radius",
+  "egmd.configuration.portalSearchRadius.tooltip": "Block radius to search for an existing portal when teleporting. Scaled down in dimensions with compressed coordinates.",
+  "message.egmd.login.closed_for_regeneration": "This mining dimension is closed for regeneration, so you have been moved to the Overworld.",
+  "message.egmd.login.relocated": "This mining dimension changed while you were away, so you have been moved somewhere safe.",
+  "message.egmd.portal.no_safe_location": "The portal could not find a safe place to open on the other side.",
+  "message.egmd.portal.regenerating": "This dimension is closed for regeneration until the server restarts."
+}
