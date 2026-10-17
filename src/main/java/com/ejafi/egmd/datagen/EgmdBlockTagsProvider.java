@@ -22,7 +22,7 @@ final class EgmdBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(PearlBlocks.PEARL_BLOCK.get());
 
-        tag(PortalVariants.OVERWORLD.getCornerTag())
+        tag(PortalVariants.OVERWORLD_MINING.getCornerTag())
                 .add(
                         Blocks.DIRT,
                         Blocks.COARSE_DIRT,
@@ -33,13 +33,15 @@ final class EgmdBlockTagsProvider extends BlockTagsProvider {
                 .addTag(Tags.Blocks.GRAVELS)
                 .addTag(Tags.Blocks.SANDS);
 
-        tag(PortalVariants.NETHER.getCornerTag())
+        tag(PortalVariants.NETHER_MINING.getCornerTag())
                 .addTag(Tags.Blocks.COBBLESTONES)
                 .addTag(Tags.Blocks.STONES);
 
-        tag(PortalVariants.END.getCornerTag())
+        tag(PortalVariants.END_MINING.getCornerTag())
                 .addTag(Tags.Blocks.NETHERRACKS)
                 .addTag(Tags.Blocks.OBSIDIANS)
                 .add(Blocks.PRISMARINE, Blocks.PRISMARINE_BRICKS, Blocks.DARK_PRISMARINE);
+
+        tag(PortalVariants.HAUNTED.getCornerTag()).add(Blocks.CARVED_PUMPKIN, Blocks.JACK_O_LANTERN);
     }
 }

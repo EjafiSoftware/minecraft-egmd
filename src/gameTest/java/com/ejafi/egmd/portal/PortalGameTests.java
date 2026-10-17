@@ -2,7 +2,8 @@ package com.ejafi.egmd.portal;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.GameTestTemplates;
-import com.ejafi.egmd.dimension.MiningDimensionFaker;
+import com.ejafi.egmd.dimension.EgmdDimensionFaker;
+import com.ejafi.egmd.dimension.Restriction;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,24 +51,18 @@ public final class PortalGameTests {
     private static final BlockPos SPAWN = FLOOR_CENTER.above();
     private static final int EXIT_HEADROOM = 2;
     private static final int WATER_FLOW_TICKS = 40;
-    private static final List<BlockPos> X_INTERIOR = listCellsBetween(
-            ORIGIN, ORIGIN.offset(MiningPortalShape.MIN_WIDTH - 1, MiningPortalShape.MIN_HEIGHT - 1, 0));
-    private static final List<BlockPos> Z_INTERIOR = listCellsBetween(
-            ORIGIN, ORIGIN.offset(0, MiningPortalShape.MIN_HEIGHT - 1, MiningPortalShape.MIN_WIDTH - 1));
-    private static final List<BlockPos> FRONT_EXIT = listCellsBetween(
-            ORIGIN.south(), ORIGIN.south().offset(MiningPortalShape.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
-    private static final List<BlockPos> BACK_EXIT = listCellsBetween(
-            ORIGIN.north(), ORIGIN.north().offset(MiningPortalShape.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
+    private static final List<BlockPos> X_INTERIOR =
+            listCellsBetween(ORIGIN, ORIGIN.offset(PortalFrame.MIN_WIDTH - 1, PortalFrame.MIN_HEIGHT - 1, 0));
+    private static final List<BlockPos> Z_INTERIOR =
+            listCellsBetween(ORIGIN, ORIGIN.offset(0, PortalFrame.MIN_HEIGHT - 1, PortalFrame.MIN_WIDTH - 1));
+    private static final List<BlockPos> FRONT_EXIT =
+            listCellsBetween(ORIGIN.south(), ORIGIN.south().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
+    private static final List<BlockPos> BACK_EXIT =
+            listCellsBetween(ORIGIN.north(), ORIGIN.north().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
     private static final List<BlockPos> X_FRAME_SAMPLES = List.of(
-            ORIGIN.west(),
-            ORIGIN.east(MiningPortalShape.MIN_WIDTH),
-            ORIGIN.above(MiningPortalShape.MIN_HEIGHT),
-            ORIGIN.below());
+            ORIGIN.west(), ORIGIN.east(PortalFrame.MIN_WIDTH), ORIGIN.above(PortalFrame.MIN_HEIGHT), ORIGIN.below());
     private static final List<BlockPos> Z_FRAME_SAMPLES = List.of(
-            ORIGIN.north(),
-            ORIGIN.south(MiningPortalShape.MIN_WIDTH),
-            ORIGIN.above(MiningPortalShape.MIN_HEIGHT),
-            ORIGIN.below());
+            ORIGIN.north(), ORIGIN.south(PortalFrame.MIN_WIDTH), ORIGIN.above(PortalFrame.MIN_HEIGHT), ORIGIN.below());
 
     private PortalGameTests() {}
 
@@ -119,11 +114,11 @@ public final class PortalGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void find_portal_around_returns_portal_when_it_sits_far_above_target(GameTestHelper helper) {
-        MiningPortalBlock portal = RegisteredPortalBlocks.getOverworldPortalBlock();
+        DimensionPortalBlock portal = RegisteredPortalBlocks.getOverworldMiningPortalBlock();
         BlockPos portalPos = new BlockPos(3, 5, 3);
         helper.setBlock(portalPos, portal.defaultBlockState());
 
-        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD)
+        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD_MINING)
                 .findPortalAround(helper.absolutePos(FLOOR_CENTER));
 
         helper.assertValueEqual(found, Optional.of(helper.absolutePos(portalPos)), "found portal");
@@ -134,14 +129,14 @@ public final class PortalGameTests {
     public static void find_portal_around_returns_farther_portal_when_nearer_poi_holds_vanilla_nether_portal(
             GameTestHelper helper) {
         BlockState portalState =
-                RegisteredPortalBlocks.getOverworldPortalBlock().defaultBlockState();
+                RegisteredPortalBlocks.getOverworldMiningPortalBlock().defaultBlockState();
         BlockPos stalePos = helper.absolutePos(ORIGIN);
         helper.setBlock(ORIGIN, portalState);
         helper.getLevel().getChunkAt(stalePos).setBlockState(stalePos, Blocks.NETHER_PORTAL.defaultBlockState(), false);
         BlockPos portalPos = new BlockPos(3, 5, 3);
         helper.setBlock(portalPos, portalState);
 
-        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD)
+        Optional<BlockPos> found = new ExitPortalFinder(helper.getLevel(), PortalVariants.OVERWORLD_MINING)
                 .findPortalAround(helper.absolutePos(FLOOR_CENTER));
 
         helper.assertValueEqual(found, Optional.of(helper.absolutePos(portalPos)), "found portal");
@@ -240,7 +235,7 @@ public final class PortalGameTests {
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void on_right_click_block_fills_frame_when_corners_are_four_different_corner_blocks(
             GameTestHelper helper) {
-        createFrameBuilder(helper, PortalVariants.NETHER)
+        createFrameBuilder(helper, PortalVariants.NETHER_MINING)
                 .withCorners(Map.of(
                         PortalCorner.LOW_BOTTOM, Blocks.COBBLESTONE.defaultBlockState(),
                         PortalCorner.HIGH_BOTTOM, Blocks.STONE.defaultBlockState(),
@@ -250,19 +245,19 @@ public final class PortalGameTests {
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
-        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER, Axis.X));
+        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER_MINING, Axis.X));
         helper.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void on_right_click_block_fills_frame_when_corners_are_infested_corner_blocks(GameTestHelper helper) {
-        createFrameBuilder(helper, PortalVariants.NETHER)
+        createFrameBuilder(helper, PortalVariants.NETHER_MINING)
                 .withCornerBlock(Blocks.INFESTED_STONE)
                 .build(locateInteriorAtOrigin(helper), Axis.X);
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
-        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER, Axis.X));
+        assertInteriorHolds(helper, getPortalState(PortalVariants.NETHER_MINING, Axis.X));
         helper.succeed();
     }
 
@@ -351,12 +346,12 @@ public final class PortalGameTests {
     public static void on_right_click_block_keeps_existing_portal_axis_when_frame_already_holds_portal_blocks(
             GameTestHelper helper) {
         buildFrameAroundOrigin(helper);
-        BlockPos topInterior = ORIGIN.above(MiningPortalShape.MIN_HEIGHT - 1);
+        BlockPos topInterior = ORIGIN.above(PortalFrame.MIN_HEIGHT - 1);
         helper.setBlock(topInterior, getPortalState(Axis.Z));
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
-        helper.assertBlockProperty(topInterior, MiningPortalBlock.AXIS, Axis.Z);
+        helper.assertBlockProperty(topInterior, DimensionPortalBlock.AXIS, Axis.Z);
         helper.succeed();
     }
 
@@ -418,22 +413,21 @@ public final class PortalGameTests {
             GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int actual =
-                RegisteredPortalBlocks.getOverworldPortalBlock().getPortalTransitionTime(helper.getLevel(), player);
+        int actual = RegisteredPortalBlocks.getOverworldMiningPortalBlock()
+                .getPortalTransitionTime(helper.getLevel(), player);
 
         helper.assertValueEqual(actual, getVanillaPortalDelay(helper), "transition time");
         helper.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
-    public static void choose_route_travels_to_mining_dimension_when_cow_steps_in_from_overworld(
-            GameTestHelper helper) {
+    public static void choose_route_travels_to_egmd_dimension_when_cow_steps_in_from_overworld(GameTestHelper helper) {
         Cow cow = helper.spawn(EntityType.COW, SPAWN);
-        ResourceKey<Level> mining = MiningDimensionFaker.pickRegistered().levelKey();
+        ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered().levelKey();
 
-        MiningPortalBlock.PortalRoute route = MiningPortalBlock.chooseRoute(cow, mining);
+        DimensionPortalBlock.PortalRoute route = DimensionPortalBlock.chooseRoute(cow, destination);
 
-        helper.assertValueEqual(route, new MiningPortalBlock.PortalRoute.Travel(mining), "route");
+        helper.assertValueEqual(route, new DimensionPortalBlock.PortalRoute.Travel(destination), "route");
         helper.succeed();
     }
 
@@ -444,21 +438,36 @@ public final class PortalGameTests {
                 helper.getLevel().getServer().getLevel(FAKER.options().option(Level.NETHER, Level.END)));
         Cow cow = Objects.requireNonNull(EntityType.COW.create(elsewhere));
 
-        MiningPortalBlock.PortalRoute route = MiningPortalBlock.chooseRoute(
-                cow, MiningDimensionFaker.pickRegistered().levelKey());
+        DimensionPortalBlock.PortalRoute route = DimensionPortalBlock.chooseRoute(
+                cow, EgmdDimensionFaker.pickRegistered().levelKey());
 
-        helper.assertValueEqual(route, new MiningPortalBlock.PortalRoute.Unlinked(), "route");
+        helper.assertValueEqual(route, new DimensionPortalBlock.PortalRoute.Unlinked(), "route");
         helper.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
-    public static void choose_route_refuses_zombie_when_destination_is_mining_dimension(GameTestHelper helper) {
+    public static void choose_route_refuses_zombie_when_destination_forbids_hostile_mobs(GameTestHelper helper) {
         Zombie zombie = helper.spawn(EntityType.ZOMBIE, SPAWN);
+        ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered(
+                        dimension -> dimension.restrictions().contains(Restriction.NO_HOSTILE_MOBS))
+                .levelKey();
 
-        MiningPortalBlock.PortalRoute route = MiningPortalBlock.chooseRoute(
-                zombie, MiningDimensionFaker.pickRegistered().levelKey());
+        DimensionPortalBlock.PortalRoute route = DimensionPortalBlock.chooseRoute(zombie, destination);
 
-        helper.assertValueEqual(route, new MiningPortalBlock.PortalRoute.Refused(), "route");
+        helper.assertValueEqual(route, new DimensionPortalBlock.PortalRoute.Refused(), "route");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void choose_route_travels_with_zombie_when_destination_allows_hostile_mobs(GameTestHelper helper) {
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, SPAWN);
+        ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered(
+                        dimension -> !dimension.restrictions().contains(Restriction.NO_HOSTILE_MOBS))
+                .levelKey();
+
+        DimensionPortalBlock.PortalRoute route = DimensionPortalBlock.chooseRoute(zombie, destination);
+
+        helper.assertValueEqual(route, new DimensionPortalBlock.PortalRoute.Travel(destination), "route");
         helper.succeed();
     }
 
@@ -478,11 +487,14 @@ public final class PortalGameTests {
     }
 
     private static BlockState getPortalState(Axis axis) {
-        return getPortalState(PortalVariants.OVERWORLD, axis);
+        return getPortalState(PortalVariants.OVERWORLD_MINING, axis);
     }
 
     private static BlockState getPortalState(PortalVariant variant, Axis axis) {
-        return PortalRegisters.getPortalBlock(variant).get().defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
+        return PortalRegisters.getPortalBlock(variant)
+                .get()
+                .defaultBlockState()
+                .setValue(DimensionPortalBlock.AXIS, axis);
     }
 
     private static PortalVariant pickVariant() {
@@ -533,8 +545,7 @@ public final class PortalGameTests {
     }
 
     private static BlockUtil.FoundRectangle locateInteriorAtOrigin(GameTestHelper helper) {
-        return new BlockUtil.FoundRectangle(
-                helper.absolutePos(ORIGIN), MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT);
+        return new BlockUtil.FoundRectangle(helper.absolutePos(ORIGIN), PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT);
     }
 
     private static PortalFootprint locateFootprintAtOrigin(GameTestHelper helper, Axis axis) {
@@ -546,8 +557,8 @@ public final class PortalGameTests {
     }
 
     private static void buildFrameAroundOrigin(GameTestHelper helper) {
-        createFrameBuilder(helper, PortalVariants.OVERWORLD)
-                .withCornerBlock(PortalVariants.OVERWORLD.defaultCornerBlock())
+        createFrameBuilder(helper, PortalVariants.OVERWORLD_MINING)
+                .withCornerBlock(PortalVariants.OVERWORLD_MINING.defaultCornerBlock())
                 .build(locateInteriorAtOrigin(helper), Axis.X);
     }
 
@@ -557,7 +568,7 @@ public final class PortalGameTests {
 
     private static void buildPortal(GameTestHelper helper, PortalSite site) {
         new PortalStructureBuilder(
-                        RegisteredPortalBlocks.getOverworldPortalBlock(), new PortalCornersFaker().generate())
+                        RegisteredPortalBlocks.getOverworldMiningPortalBlock(), new PortalCornersFaker().generate())
                 .build(helper.getLevel(), site);
     }
 
@@ -567,7 +578,9 @@ public final class PortalGameTests {
     }
 
     private static BlockState getFrameState() {
-        return RegisteredPortalBlocks.getOverworldPortalBlock().getFrameBlock().defaultBlockState();
+        return RegisteredPortalBlocks.getOverworldMiningPortalBlock()
+                .getFrameBlock()
+                .defaultBlockState();
     }
 
     private static void blockCells(GameTestHelper helper, List<BlockPos> cells) {

@@ -18,13 +18,12 @@ record PortalFootprint(BlockPos origin, Axis axis) {
     private static final int PLATFORM_DEPTH = 3;
     private static final int EXIT_HEADROOM = 2;
     private static final BoundingBox PLANE =
-            new BoundingBox(-1, 0, 0, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, 0);
+            new BoundingBox(-1, 0, 0, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT, 0);
     private static final BoundingBox PORTAL =
-            new BoundingBox(0, 0, 0, MiningPortalShape.MIN_WIDTH - 1, MiningPortalShape.MIN_HEIGHT - 1, 0);
-    private static final BoundingBox EXIT =
-            new BoundingBox(0, 0, 1, MiningPortalShape.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 1);
+            new BoundingBox(0, 0, 0, PortalFrame.MIN_WIDTH - 1, PortalFrame.MIN_HEIGHT - 1, 0);
+    private static final BoundingBox EXIT = new BoundingBox(0, 0, 1, PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 1);
     private static final BoundingBox PLATFORM =
-            new BoundingBox(-1, -1, -1, MiningPortalShape.MIN_WIDTH, -1, PLATFORM_DEPTH - 2);
+            new BoundingBox(-1, -1, -1, PortalFrame.MIN_WIDTH, -1, PLATFORM_DEPTH - 2);
 
     PortalFootprint {
         origin = origin.immutable();
@@ -69,7 +68,7 @@ record PortalFootprint(BlockPos origin, Axis axis) {
 
     Map<PortalCorner, BlockPos> locateCorners() {
         return PortalCorner.locateAll(
-                new BlockUtil.FoundRectangle(origin, MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT), axis);
+                new BlockUtil.FoundRectangle(origin, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT), axis);
     }
 
     private List<BlockPos> listPlaneCells() {
@@ -89,7 +88,7 @@ record PortalFootprint(BlockPos origin, Axis axis) {
 
     private static boolean fitsInWorld(CollisionGetter level, PortalFootprint footprint) {
         return footprint.origin().getY() - 1 > level.getMinBuildHeight()
-                && footprint.origin().getY() + MiningPortalShape.MIN_HEIGHT < level.getMaxBuildHeight()
+                && footprint.origin().getY() + PortalFrame.MIN_HEIGHT < level.getMaxBuildHeight()
                 && footprint.listPlatformCells().stream().allMatch(level.getWorldBorder()::isWithinBounds);
     }
 

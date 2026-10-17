@@ -1,9 +1,0 @@
-// 1.21.1	2026-10-10T18:35:01.8155755	Block States: egmd
-42dd744e5663f9ff83a65fdb590c783f6fb9cd6a assets/egmd/blockstates/end_mining_portal.json
-42dd744e5663f9ff83a65fdb590c783f6fb9cd6a assets/egmd/blockstates/mining_portal.json
-42dd744e5663f9ff83a65fdb590c783f6fb9cd6a assets/egmd/blockstates/nether_mining_portal.json
-fd870814ff88f01b7857907fb4e4cc2fb6b04284 assets/egmd/blockstates/pearl_block.json
-a237d332323241dc61187e8f491aae278d415a4b assets/egmd/models/block/mining_portal_ew.json
-3e7ec13215173954e9c7da950a86941ca0c4432e assets/egmd/models/block/mining_portal_ns.json
-ec7ea2c411f4f95bd7abf07f56477740f4265464 assets/egmd/models/block/pearl_block.json
-d33eac9ea193d74b33edbc97ef859cfdc0b446b3 assets/egmd/models/item/pearl_block.json

@@ -11,11 +11,11 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 final class PortalStructureBuilder {
-    private final MiningPortalBlock portal;
+    private final DimensionPortalBlock portal;
     private final BlockState frame;
     private final Map<PortalCorner, BlockState> corners;
 
-    PortalStructureBuilder(MiningPortalBlock portal, Map<PortalCorner, BlockState> corners) {
+    PortalStructureBuilder(DimensionPortalBlock portal, Map<PortalCorner, BlockState> corners) {
         this.portal = portal;
         this.frame = portal.getFrameBlock().defaultBlockState();
         this.corners = Map.copyOf(corners);
@@ -38,10 +38,8 @@ final class PortalStructureBuilder {
         Stream.concat(footprint.listFrameCells().stream(), footprint.listPlatformCells().stream())
                 .forEach(pos -> level.setBlock(pos, cornerStates.getOrDefault(pos, frame), Block.UPDATE_ALL));
 
-        BlockState portalState = portal.defaultBlockState().setValue(MiningPortalBlock.AXIS, footprint.axis());
-        footprint
-                .listPortalCells()
-                .forEach(pos -> level.setBlock(pos, portalState, MiningPortalShape.PORTAL_UPDATE_FLAGS));
+        BlockState portalState = portal.defaultBlockState().setValue(DimensionPortalBlock.AXIS, footprint.axis());
+        footprint.listPortalCells().forEach(pos -> level.setBlock(pos, portalState, PortalFrame.PORTAL_UPDATE_FLAGS));
     }
 
     private static void clearExit(LevelWriter level, PortalFootprint footprint) {

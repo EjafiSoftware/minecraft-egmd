@@ -41,7 +41,10 @@ public final class PlayerRelocator {
     }
 
     static LoginRescue chooseRescue(ResourceKey<Level> dimension, Supplier<Footing> footing) {
-        if (MiningDimension.findByLevelKey(dimension).isEmpty()) {
+        boolean flat = EgmdDimensions.find(dimension)
+                .map(egmd -> egmd.terrain() instanceof Terrain.Flat)
+                .orElse(false);
+        if (!flat) {
             return new LoginRescue.Stay();
         }
 

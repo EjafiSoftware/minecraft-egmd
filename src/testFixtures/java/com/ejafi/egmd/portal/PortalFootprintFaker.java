@@ -7,7 +7,7 @@ import net.minecraft.core.Direction.Axis;
 final class PortalFootprintFaker {
     private static final Faker FAKER = new Faker();
     private static final int LOWEST_HOSTABLE_Y = BlockPosFaker.MIN_BUILD_Y + 2;
-    private static final int HIGHEST_HOSTABLE_Y = BlockPosFaker.MAX_BUILD_Y - MiningPortalShape.MIN_HEIGHT - 1;
+    private static final int HIGHEST_HOSTABLE_Y = BlockPosFaker.MAX_BUILD_Y - PortalFrame.MIN_HEIGHT - 1;
 
     private final BlockPosFaker origin =
             new BlockPosFaker().withY(FAKER.number().numberBetween(LOWEST_HOSTABLE_Y, HIGHEST_HOSTABLE_Y + 1));

@@ -41,7 +41,7 @@ class PortalFootprintTest {
                 Arguments.argumentSet(
                         "another portal in frame plane",
                         new BlockPos(0, 1, 0),
-                        RegisteredPortalBlocks.getOverworldPortalBlock()),
+                        RegisteredPortalBlocks.getOverworldMiningPortalBlock()),
                 Arguments.argumentSet("solid block in frame plane", new BlockPos(0, 2, 0), Blocks.STONE),
                 Arguments.argumentSet("water in frame plane", new BlockPos(0, 1, 0), Blocks.WATER),
                 Arguments.argumentSet("bedrock under platform", new BlockPos(-1, -1, 0), Blocks.BEDROCK),
@@ -82,7 +82,7 @@ class PortalFootprintTest {
     @Test
     void canHost_rejectsOrigin_whenTopFrameWouldExceedBuildHeight() {
         PortalFootprint top = new PortalFootprintFaker()
-                .withOriginY(level.getMaxBuildHeight() - MiningPortalShape.MIN_HEIGHT)
+                .withOriginY(level.getMaxBuildHeight() - PortalFrame.MIN_HEIGHT)
                 .generate();
 
         boolean hostable = PortalFootprint.canHost(level, top);
@@ -146,10 +146,9 @@ class PortalFootprintTest {
         assertThat(corners)
                 .isEqualTo(Map.of(
                         PortalCorner.LOW_BOTTOM, origin.offset(-1, -1, 0),
-                        PortalCorner.HIGH_BOTTOM, origin.offset(MiningPortalShape.MIN_WIDTH, -1, 0),
-                        PortalCorner.LOW_TOP, origin.offset(-1, MiningPortalShape.MIN_HEIGHT, 0),
-                        PortalCorner.HIGH_TOP,
-                                origin.offset(MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT, 0)));
+                        PortalCorner.HIGH_BOTTOM, origin.offset(PortalFrame.MIN_WIDTH, -1, 0),
+                        PortalCorner.LOW_TOP, origin.offset(-1, PortalFrame.MIN_HEIGHT, 0),
+                        PortalCorner.HIGH_TOP, origin.offset(PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT, 0)));
     }
 
     @Test
@@ -162,10 +161,9 @@ class PortalFootprintTest {
         assertThat(corners)
                 .isEqualTo(Map.of(
                         PortalCorner.LOW_BOTTOM, origin.offset(0, -1, -1),
-                        PortalCorner.HIGH_BOTTOM, origin.offset(0, -1, MiningPortalShape.MIN_WIDTH),
-                        PortalCorner.LOW_TOP, origin.offset(0, MiningPortalShape.MIN_HEIGHT, -1),
-                        PortalCorner.HIGH_TOP,
-                                origin.offset(0, MiningPortalShape.MIN_HEIGHT, MiningPortalShape.MIN_WIDTH)));
+                        PortalCorner.HIGH_BOTTOM, origin.offset(0, -1, PortalFrame.MIN_WIDTH),
+                        PortalCorner.LOW_TOP, origin.offset(0, PortalFrame.MIN_HEIGHT, -1),
+                        PortalCorner.HIGH_TOP, origin.offset(0, PortalFrame.MIN_HEIGHT, PortalFrame.MIN_WIDTH)));
     }
 
     private PortalFootprint generateFootprintInsideBorderAtZ(int z) {
@@ -188,7 +186,7 @@ class PortalFootprintTest {
 
     private void fillFootprintWithStone() {
         for (int x = -1; x <= 2; x++) {
-            for (int y = -1; y <= MiningPortalShape.MIN_HEIGHT; y++) {
+            for (int y = -1; y <= PortalFrame.MIN_HEIGHT; y++) {
                 for (int z = -1; z <= 1; z++) {
                     level.setBlock(
                             footprint.origin().offset(x, y, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);

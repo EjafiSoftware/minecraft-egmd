@@ -1,5 +1,0 @@
-// 1.21.1	2026-10-10T21:56:42.610388	Tags for minecraft:block mod id egmd
-abe2b30a708585c0b14852b4a36e3077902c7d0a data/egmd/tags/block/end_mining_portal_corners.json
-3ce180575faae4134b697e98666101f7750e1339 data/egmd/tags/block/mining_portal_corners.json
-ebe96bf5c8add0aa629e6f99457fe1da4a89bc3e data/egmd/tags/block/nether_mining_portal_corners.json
-dec7e0d69005304451af4535e7fa8ea9a1de830f data/minecraft/tags/block/mineable/pickaxe.json

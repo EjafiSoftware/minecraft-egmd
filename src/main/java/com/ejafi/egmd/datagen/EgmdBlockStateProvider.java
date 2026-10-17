@@ -2,7 +2,7 @@ package com.ejafi.egmd.datagen;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.pearl.PearlBlocks;
-import com.ejafi.egmd.portal.MiningPortalBlock;
+import com.ejafi.egmd.portal.DimensionPortalBlock;
 import com.ejafi.egmd.portal.PortalRegisters;
 import java.util.List;
 import net.minecraft.core.Direction;
@@ -34,15 +34,15 @@ final class EgmdBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         ModelFile northSouth = createPortalModel(NORTH_SOUTH);
         ModelFile eastWest = createPortalModel(EAST_WEST);
-        for (DeferredBlock<MiningPortalBlock> portal : PortalRegisters.PORTAL_BLOCKS.values()) {
+        for (DeferredBlock<DimensionPortalBlock> portal : PortalRegisters.PORTAL_BLOCKS.values()) {
             getVariantBuilder(portal.get())
                     .partialState()
-                    .with(MiningPortalBlock.AXIS, Axis.X)
+                    .with(DimensionPortalBlock.AXIS, Axis.X)
                     .modelForState()
                     .modelFile(northSouth)
                     .addModel()
                     .partialState()
-                    .with(MiningPortalBlock.AXIS, Axis.Z)
+                    .with(DimensionPortalBlock.AXIS, Axis.Z)
                     .modelForState()
                     .modelFile(eastWest)
                     .addModel();
@@ -59,7 +59,7 @@ final class EgmdBlockStateProvider extends BlockStateProvider {
                 .renderType(TRANSLUCENT)
                 .texture("particle", PORTAL_TEXTURE)
                 .texture(PORTAL_TEXTURE_KEY, PORTAL_TEXTURE);
-        AABB pane = MiningPortalBlock.getPaneShape(plane.axis()).bounds();
+        AABB pane = DimensionPortalBlock.getPaneShape(plane.axis()).bounds();
         ModelBuilder<BlockModelBuilder>.ElementBuilder element = model.element()
                 .from(toPixels(pane.minX), toPixels(pane.minY), toPixels(pane.minZ))
                 .to(toPixels(pane.maxX), toPixels(pane.maxY), toPixels(pane.maxZ));

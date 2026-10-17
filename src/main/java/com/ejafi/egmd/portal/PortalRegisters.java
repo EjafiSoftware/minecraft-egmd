@@ -31,13 +31,13 @@ public final class PortalRegisters {
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES =
             DeferredRegister.create(Registries.PARTICLE_TYPE, EGMD.MOD_ID);
 
-    public static final Map<PortalVariant, DeferredBlock<MiningPortalBlock>> PORTAL_BLOCKS =
+    public static final Map<PortalVariant, DeferredBlock<DimensionPortalBlock>> PORTAL_BLOCKS =
             registerPerVariant(variant -> BLOCKS.register(
-                    variant.id(), () -> new MiningPortalBlock(createPortalProperties(variant.mapColor()), variant)));
+                    variant.id(), () -> new DimensionPortalBlock(createPortalProperties(variant.mapColor()), variant)));
 
     private static final Map<PortalVariant, DeferredHolder<PoiType, PoiType>> PORTAL_POI_TYPES =
             registerPerVariant(variant -> POI_TYPES.register(variant.id(), () -> {
-                MiningPortalBlock block = getPortalBlock(variant).get();
+                DimensionPortalBlock block = getPortalBlock(variant).get();
                 return new PoiType(Set.copyOf(block.getStateDefinition().getPossibleStates()), 1, 1);
             }));
 
@@ -62,7 +62,7 @@ public final class PortalRegisters {
         PARTICLE_TYPES.register(modEventBus);
     }
 
-    public static DeferredBlock<MiningPortalBlock> getPortalBlock(PortalVariant variant) {
+    public static DeferredBlock<DimensionPortalBlock> getPortalBlock(PortalVariant variant) {
         return Objects.requireNonNull(PORTAL_BLOCKS.get(variant));
     }
 

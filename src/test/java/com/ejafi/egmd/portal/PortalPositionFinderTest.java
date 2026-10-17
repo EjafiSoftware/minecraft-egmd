@@ -57,7 +57,7 @@ class PortalPositionFinderTest {
 
     @Test
     void clampInsideBorder_keepsTarget_whenBorderIsNarrowerThanFootprint() {
-        border.setSize(MiningPortalShape.MIN_WIDTH);
+        border.setSize(PortalFrame.MIN_WIDTH);
         BlockPos target = new BlockPosFaker().generate();
 
         BlockPos clamped = PortalPositionFinder.clampInsideBorder(border, target);

@@ -21,11 +21,20 @@ public final class DataGatherer {
         ExistingFileHelper fileHelper = event.getExistingFileHelper();
 
         event.createDatapackRegistryObjects(new RegistrySetBuilder()
-                .add(Registries.DIMENSION_TYPE, MiningLevels::bootstrapDimensionTypes)
-                .add(Registries.CONFIGURED_FEATURE, MiningOres::bootstrapConfiguredFeatures)
-                .add(Registries.PLACED_FEATURE, MiningOres::bootstrapPlacedFeatures)
-                .add(Registries.BIOME, MiningBiomes::bootstrap)
-                .add(Registries.LEVEL_STEM, MiningLevels::bootstrapLevelStems));
+                .add(Registries.DIMENSION_TYPE, EgmdLevels::bootstrapDimensionTypes)
+                .add(Registries.CONFIGURED_FEATURE, context -> {
+                    MiningOres.bootstrapConfiguredFeatures(context);
+                    HauntedFeatures.bootstrapConfiguredFeatures(context);
+                })
+                .add(Registries.PLACED_FEATURE, context -> {
+                    MiningOres.bootstrapPlacedFeatures(context);
+                    HauntedFeatures.bootstrapPlacedFeatures(context);
+                })
+                .add(Registries.BIOME, context -> {
+                    MiningBiomes.bootstrap(context);
+                    HauntedBiomes.bootstrap(context);
+                })
+                .add(Registries.LEVEL_STEM, EgmdLevels::bootstrapLevelStems));
 
         event.createProvider(output -> new EgmdBlockStateProvider(output, fileHelper));
         event.createProvider(output -> new EgmdParticleDescriptionProvider(output, fileHelper));
@@ -35,6 +44,7 @@ public final class DataGatherer {
                 Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(EgmdBlockLootProvider::new, LootContextParamSets.BLOCK)),
                 lookup));
+        event.createProvider((output, lookup) -> new EgmdBiomeTagsProvider(output, lookup, fileHelper));
         event.createBlockAndItemTags(
                 (output, lookup) -> new EgmdBlockTagsProvider(output, lookup, fileHelper),
                 (output, lookup, blockTags) -> new EgmdItemTagsProvider(output, lookup, blockTags, fileHelper));

@@ -16,10 +16,9 @@ class PortalExitTest {
     private static final Faker FAKER = new Faker();
 
     private final BlockPos minCorner = new BlockPosFaker().generate();
-    private final int height =
-            FAKER.number().numberBetween(MiningPortalShape.MIN_HEIGHT, MiningPortalShape.MAX_HEIGHT + 1);
+    private final int height = FAKER.number().numberBetween(PortalFrame.MIN_HEIGHT, PortalFrame.MAX_HEIGHT + 1);
     private final BlockUtil.FoundRectangle narrowestPortal =
-            new BlockUtil.FoundRectangle(minCorner, MiningPortalShape.MIN_WIDTH, height);
+            new BlockUtil.FoundRectangle(minCorner, PortalFrame.MIN_WIDTH, height);
 
     @ParameterizedTest(name = "{0} axis")
     @CsvSource({"X, 1.0, 1.5, 0", "Z, -0.5, 1.0, 90"})
@@ -50,7 +49,7 @@ class PortalExitTest {
 
     @Test
     void computeFront_centersSpawnOnPortalWidth_whenPortalIsWiderThanMinimum() {
-        int width = FAKER.number().numberBetween(MiningPortalShape.MIN_WIDTH + 1, MiningPortalShape.MAX_WIDTH + 1);
+        int width = FAKER.number().numberBetween(PortalFrame.MIN_WIDTH + 1, PortalFrame.MAX_WIDTH + 1);
 
         PortalExit exit = PortalExit.computeFront(new BlockUtil.FoundRectangle(minCorner, width, height), Axis.X);
 
