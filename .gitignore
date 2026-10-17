@@ -17,6 +17,7 @@ build
 
 eclipse
 run
+runs
 .output.txt
 
 src/generated/resources/.cache

@@ -1,3 +1,21 @@
+pluginManagement {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'GitHubPackages'
+                    url = 'https://maven.pkg.github.com/EjafiSoftware/minecraft-build'
+                    credentials(PasswordCredentials)
+                }
+            }
+            filter {
+                includeGroupByRegex 'com\\.ejafi\\..*'
+            }
+        }
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }

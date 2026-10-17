@@ -4,7 +4,7 @@ Guidance for coding agents working in this repository.
 
 ## Project
 
-**Ejafi Games Mining Dimensions (EGMD)** is a NeoForge mod for Minecraft 1.21.1 with the mod ID `egmd`. It adds three flat, ore-rich mining dimensions and the Haunted dimension, each reached through its own portal from the Overworld. The Minecraft, NeoForge, and library versions are in `gradle.properties`, and the NeoForge API reference for this version is [docs.neoforged.net/docs/1.21.1](https://docs.neoforged.net/docs/1.21.1/).
+**Ejafi Games Mining Dimensions (EGMD)** is a NeoForge mod for Minecraft 1.21.1 with the mod ID `egmd`. It adds three flat, ore-rich mining dimensions and the Haunted dimension, each reached through its own portal from the Overworld. The Minecraft and NeoForge versions are in `gradle.properties`, and the NeoForge API reference for this version is [docs.neoforged.net/docs/1.21.1](https://docs.neoforged.net/docs/1.21.1/).
 
 | Dimension | Frame block | Portal block | Biome |
 |---|---|---|---|
@@ -23,9 +23,17 @@ Guidance for coding agents working in this repository.
 | `./gradlew spotlessApply` | Formats every Java source set |
 | `./gradlew runClient`, `./gradlew runServer` | Dev runs. Both load the `gameTest` source set and enable the `egmd` GameTest namespace, so `/test` works in them. |
 
-**The gate** is `./gradlew build` followed by `./gradlew runGameTestServer`, and both must pass before work is done. CI (`.github/workflows/build.yml`) runs the same two commands.
+**The gate** is `./gradlew runData` with `git status --porcelain` printing nothing, then `./gradlew build`, then `./gradlew runGameTestServer`, and all of them must pass before work is done. CI (`.github/workflows/build.yml`) runs the same steps through the shared `mod-gate.yml` workflow.
 
-The dev runs need JDK 21. `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to JDK 21, and Gradle downloads one from the URLs in that file when none is installed. The compile toolchain is also Java 21, set in `build.gradle`.
+### Build configuration
+
+`build.gradle` applies only the `com.ejafi.neoforge-mod` convention plugin from [EjafiSoftware/minecraft-build](https://github.com/EjafiSoftware/minecraft-build), which owns the source sets, runs, tool and library versions, and the `neoforge.mods.toml` expansion. Its README describes what the plugin configures and the GitHub Packages token Gradle needs to download it. A build change that every mod should get belongs in that repo, and this repo picks it up by moving the plugin version in `build.gradle` and the workflow refs in `build.yml` to the new tag.
+
+The dev runs need JDK 21. `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to JDK 21, and Gradle downloads one from the URLs in that file when none is installed. Each run uses `runs/<run name>` as its game directory.
+
+### Releases
+
+Pushing a tag that equals `mod_version`, such as `2.2.0`, on a commit in `main` runs the gate, then publishes a GitHub release titled with the version. The release carries `egmd-<version>.jar` and the `## [<version>]` section of `CHANGELOG.md`. The job fails without publishing when the tag doesn't match `mod_version`, the commit isn't in `main`, or the changelog has no section for the version.
 
 ## Source layout
 
@@ -245,7 +253,7 @@ Each feature package owns its registers and exposes `register(IEventBus)`, which
 
 ### Data generation
 
-Every file a data provider can produce comes from `./gradlew runData`, which writes to `src/generated/resources/`. That folder is committed and is added to the main resources by `build.gradle`. Its `.cache` is gitignored and left out of the jar. The run passes `--existing src/main/resources`, so providers can check that hand-written textures exist.
+Every file a data provider can produce comes from `./gradlew runData`, which writes to `src/generated/resources/`. That folder is committed and is added to the main resources by the convention plugin. Its `.cache` is gitignored and left out of the jar. The run passes `--existing src/main/resources`, so providers can check that hand-written textures exist.
 
 ### Terrain and surface Y
 
@@ -267,7 +275,7 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 **GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(EGMD.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
 
-**Fixtures** live in the `testFixtures` source set from Gradle's `java-test-fixtures` plugin, shared by the unit tests and the GameTests. `build.gradle` binds `main`, `testFixtures`, and `gameTest` to the `egmd` mod, so the dev runs and the unit-test runtime load all three as one mod, while the jar contains only `main`. Datafaker is also on `additionalRuntimeClasspath`, because the GameTests and fixtures that the dev runs load use it.
+**Fixtures** live in the `testFixtures` source set from Gradle's `java-test-fixtures` plugin, shared by the unit tests and the GameTests. The convention plugin binds `main`, `testFixtures`, `gameTest`, and `datagen` to the `egmd` mod, so the dev runs and the unit-test runtime load them as one mod, while the jar contains only `main`. Datafaker is also on `additionalRuntimeClasspath`, because the GameTests and fixtures that the dev runs load use it.
 
 ## Coding standards
 
