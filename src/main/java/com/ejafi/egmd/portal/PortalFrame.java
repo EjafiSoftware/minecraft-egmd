@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.InfestedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
-final class MiningPortalShape {
+final class PortalFrame {
     static final int MIN_WIDTH = 2;
     static final int MAX_WIDTH = 21;
     static final int MIN_HEIGHT = 3;
@@ -25,14 +25,14 @@ final class MiningPortalShape {
     private final BlockGetter level;
     private final Axis axis;
     private final Direction rightDir;
-    private final MiningPortalBlock portalBlock;
+    private final DimensionPortalBlock portalBlock;
     private final Block frameBlock;
     private final BlockPos bottomLeft;
     private final int width;
     private final int height;
     private final int portalBlockCount;
 
-    MiningPortalShape(BlockGetter level, BlockPos pos, Axis axis, MiningPortalBlock portalBlock) {
+    PortalFrame(BlockGetter level, BlockPos pos, Axis axis, DimensionPortalBlock portalBlock) {
         this.level = level;
         this.axis = axis;
         this.portalBlock = portalBlock;
@@ -174,7 +174,7 @@ final class MiningPortalShape {
     }
 
     void createPortalBlocks(LevelWriter writer) {
-        BlockState state = portalBlock.defaultBlockState().setValue(MiningPortalBlock.AXIS, axis);
+        BlockState state = portalBlock.defaultBlockState().setValue(DimensionPortalBlock.AXIS, axis);
         streamInterior().forEach(pos -> writer.setBlock(pos, state, PORTAL_UPDATE_FLAGS));
     }
 }

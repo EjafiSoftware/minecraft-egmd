@@ -12,11 +12,12 @@ import org.junit.jupiter.api.Test;
 class PlayerRelocatorTest {
     private static final Faker FAKER = new Faker();
 
-    private final ResourceKey<Level> mining =
-            MiningDimensionFaker.pickRegistered().levelKey();
+    private final ResourceKey<Level> flat = EgmdDimensionFaker.pickRegistered(
+                    dimension -> dimension.terrain() instanceof Terrain.Flat)
+            .levelKey();
 
     @Test
-    void chooseRescue_leavesPlayerInPlace_whenDimensionIsNotMining() {
+    void chooseRescue_leavesPlayerInPlace_whenDimensionIsVanilla() {
         ResourceKey<Level> vanilla = FAKER.options().option(Level.OVERWORLD, Level.NETHER, Level.END);
 
         PlayerRelocator.LoginRescue rescue =
@@ -26,9 +27,21 @@ class PlayerRelocatorTest {
     }
 
     @Test
-    void chooseRescue_leavesPlayerInPlace_whenPlayerIsStanding() {
+    void chooseRescue_leavesPlayerInPlace_whenBuriedInGeneratedTerrain() {
+        ResourceKey<Level> generated = EgmdDimensionFaker.pickRegistered(
+                        dimension -> dimension.terrain() instanceof Terrain.Generated)
+                .levelKey();
+        BlockPos clearSpace = new BlockPosFaker().generate();
+
         PlayerRelocator.LoginRescue rescue =
-                PlayerRelocator.chooseRescue(mining, PlayerRelocator.Footing.Standing::new);
+                PlayerRelocator.chooseRescue(generated, () -> new PlayerRelocator.Footing.Buried(clearSpace));
+
+        assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.Stay());
+    }
+
+    @Test
+    void chooseRescue_leavesPlayerInPlace_whenPlayerIsStanding() {
+        PlayerRelocator.LoginRescue rescue = PlayerRelocator.chooseRescue(flat, PlayerRelocator.Footing.Standing::new);
 
         assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.Stay());
     }
@@ -38,15 +51,14 @@ class PlayerRelocatorTest {
         BlockPos clearSpace = new BlockPosFaker().generate();
 
         PlayerRelocator.LoginRescue rescue =
-                PlayerRelocator.chooseRescue(mining, () -> new PlayerRelocator.Footing.Buried(clearSpace));
+                PlayerRelocator.chooseRescue(flat, () -> new PlayerRelocator.Footing.Buried(clearSpace));
 
         assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.LiftToClearSpace(clearSpace));
     }
 
     @Test
     void chooseRescue_sendsPlayerToOverworld_whenPlayerIsEntombed() {
-        PlayerRelocator.LoginRescue rescue =
-                PlayerRelocator.chooseRescue(mining, PlayerRelocator.Footing.Entombed::new);
+        PlayerRelocator.LoginRescue rescue = PlayerRelocator.chooseRescue(flat, PlayerRelocator.Footing.Entombed::new);
 
         assertThat(rescue).isEqualTo(new PlayerRelocator.LoginRescue.SendToOverworld());
     }

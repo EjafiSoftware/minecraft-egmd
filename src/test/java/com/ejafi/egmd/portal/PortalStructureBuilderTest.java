@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class PortalStructureBuilderTest {
     private final FakeLevel level = new FakeLevel();
-    private final MiningPortalBlock portalBlock = RegisteredPortalBlocks.getOverworldPortalBlock();
+    private final DimensionPortalBlock portalBlock = RegisteredPortalBlocks.getOverworldMiningPortalBlock();
     private final Map<PortalCorner, BlockState> corners = new PortalCornersFaker().generate();
     private final PortalStructureBuilder builder = new PortalStructureBuilder(portalBlock, corners);
 
@@ -51,6 +51,6 @@ class PortalStructureBuilderTest {
     }
 
     private Map<PortalCorner, BlockState> readCorners(PortalFootprint footprint) {
-        return new MiningPortalShape(level, footprint.origin(), footprint.axis(), portalBlock).readCorners();
+        return new PortalFrame(level, footprint.origin(), footprint.axis(), portalBlock).readCorners();
     }
 }

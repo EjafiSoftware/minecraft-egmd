@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0]
+
+### Added
+- The Haunted dimension, reached through a Bone Block portal with carved pumpkin or jack o'lantern corners.
+- The Haunted dimension is always midnight, and spiders and slimes spawn there often.
+- Slimes spawn on the Haunted surface every night, whatever the moon phase.
+
 ## [2.0.0]
 
 ### Changed

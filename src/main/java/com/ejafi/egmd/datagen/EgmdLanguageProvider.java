@@ -21,26 +21,28 @@ final class EgmdLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        addPortal(PortalVariants.OVERWORLD, "Mining Portal");
-        addPortal(PortalVariants.NETHER, "Nether Mining Portal");
-        addPortal(PortalVariants.END, "End Mining Portal");
+        addPortal(PortalVariants.OVERWORLD_MINING, "Mining Portal");
+        addPortal(PortalVariants.NETHER_MINING, "Nether Mining Portal");
+        addPortal(PortalVariants.END_MINING, "End Mining Portal");
+        addPortal(PortalVariants.HAUNTED, "Haunted Portal");
         addBlock(PearlBlocks.PEARL_BLOCK, "Pearl Block");
 
         addBiomeName(MiningBiomes.MINING_PLAINS, "Mining Plains");
         addBiomeName(MiningBiomes.NETHER_MINING_WASTES, "Nether Mining Wastes");
         addBiomeName(MiningBiomes.END_MINING_WASTES, "End Mining Wastes");
+        addBiomeName(HauntedBiomes.HAUNTED_WOODS, "Haunted Woods");
 
         add(
                 DimensionMessages.LOGIN_RELOCATED,
-                "This mining dimension changed while you were away, so you have been moved somewhere safe.");
-        add(DimensionMessages.BED_REFUSED, "You can't sleep in a mining dimension.");
+                "This dimension changed while you were away, so you have been moved somewhere safe.");
+        add(DimensionMessages.BED_REFUSED, "You can't sleep in this dimension.");
 
         add(PortalMessages.NO_SAFE_LOCATION, "The portal could not find a safe place to open on the other side.");
-        add(PortalMessages.MINING_PORTAL_CORNERS, "Mining Portal corners must be dirt, gravel, or sand.");
-        add(PortalMessages.NETHER_MINING_PORTAL_CORNERS, "Nether Mining Portal corners must be cobblestone or stone.");
-        add(
-                PortalMessages.END_MINING_PORTAL_CORNERS,
-                "End Mining Portal corners must be netherrack, obsidian, or prismarine.");
+        addCornerHint(PortalVariants.OVERWORLD_MINING, "Mining Portal corners must be dirt, gravel, or sand.");
+        addCornerHint(PortalVariants.NETHER_MINING, "Nether Mining Portal corners must be cobblestone or stone.");
+        addCornerHint(
+                PortalVariants.END_MINING, "End Mining Portal corners must be netherrack, obsidian, or prismarine.");
+        addCornerHint(PortalVariants.HAUNTED, "Haunted Portal corners must be carved pumpkins or jack o'lanterns.");
 
         add(PortalConfig.PORTAL_SEARCH_RADIUS_TRANSLATION, "Portal Search Radius");
         add(PortalConfig.PORTAL_SEARCH_RADIUS_TRANSLATION + ".tooltip", PortalConfig.PORTAL_SEARCH_RADIUS_DESCRIPTION);
@@ -48,6 +50,10 @@ final class EgmdLanguageProvider extends LanguageProvider {
 
     private void addPortal(PortalVariant variant, String name) {
         addBlock(PortalRegisters.getPortalBlock(variant), name);
+    }
+
+    private void addCornerHint(PortalVariant variant, String hint) {
+        add(variant.getCornerHintKey(), hint);
     }
 
     private void addBiomeName(ResourceKey<Biome> biome, String name) {

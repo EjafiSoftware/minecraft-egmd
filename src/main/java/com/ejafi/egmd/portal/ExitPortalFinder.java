@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 final class ExitPortalFinder {
     private final ServerLevel level;
     private final ResourceKey<PoiType> poiTypeKey;
-    private final MiningPortalBlock portalBlock;
+    private final DimensionPortalBlock portalBlock;
 
     ExitPortalFinder(ServerLevel level, PortalVariant variant) {
         this.level = level;
@@ -52,10 +52,10 @@ final class ExitPortalFinder {
         BlockState state = level.getBlockState(portalPos);
         return BlockUtil.getLargestRectangleAround(
                 portalPos,
-                state.getValue(MiningPortalBlock.AXIS),
-                MiningPortalShape.MAX_WIDTH,
+                state.getValue(DimensionPortalBlock.AXIS),
+                PortalFrame.MAX_WIDTH,
                 Axis.Y,
-                MiningPortalShape.MAX_HEIGHT,
+                PortalFrame.MAX_HEIGHT,
                 pos -> level.getBlockState(pos).equals(state));
     }
 
@@ -65,7 +65,7 @@ final class ExitPortalFinder {
         return PortalPositionFinder.find(level, target).map(site -> {
             builder.build(level, site);
             return new BlockUtil.FoundRectangle(
-                    site.footprint().origin(), MiningPortalShape.MIN_WIDTH, MiningPortalShape.MIN_HEIGHT);
+                    site.footprint().origin(), PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT);
         });
     }
 }

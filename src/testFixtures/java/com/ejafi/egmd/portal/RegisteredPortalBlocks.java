@@ -3,7 +3,7 @@ package com.ejafi.egmd.portal;
 final class RegisteredPortalBlocks {
     private RegisteredPortalBlocks() {}
 
-    static MiningPortalBlock getOverworldPortalBlock() {
-        return PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD).get();
+    static DimensionPortalBlock getOverworldMiningPortalBlock() {
+        return PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING).get();
     }
 }

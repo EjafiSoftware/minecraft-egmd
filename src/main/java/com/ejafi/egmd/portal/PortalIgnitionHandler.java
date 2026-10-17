@@ -59,13 +59,13 @@ public final class PortalIgnitionHandler {
         }
 
         Ignition ignition = found.orElseThrow();
-        List<MiningPortalShape> emptyFrames = findEmptyFrames(level, ignition);
+        List<PortalFrame> emptyFrames = findEmptyFrames(level, ignition);
         if (emptyFrames.isEmpty()) {
             return;
         }
 
         PortalCornerMaterials materials = PortalCornerMaterials.create(ignition.variant());
-        Optional<MiningPortalShape> shape = emptyFrames.stream()
+        Optional<PortalFrame> shape = emptyFrames.stream()
                 .filter(frame -> materials.acceptsAll(frame.readCorners()))
                 .findFirst();
         if (shape.isEmpty()) {
@@ -102,7 +102,7 @@ public final class PortalIgnitionHandler {
         return !player.isSpectator()
                 && event.getUseItem() != TriState.FALSE
                 && player.mayUseItemAt(ignition.portalPos(), ignition.face(), event.getItemStack())
-                && MiningPortalBlock.resolveDestination(
+                && DimensionPortalBlock.resolveDestination(
                                 event.getLevel().dimension(),
                                 ignition.variant().dimension().levelKey())
                         != null;
@@ -119,27 +119,27 @@ public final class PortalIgnitionHandler {
         Direction face = hit.getDirection();
         BlockPos portalPos = clickedPos.relative(face);
         return findVariantForFrame(clicked)
-                .filter(variant -> MiningPortalShape.isOpenCell(level.getBlockState(portalPos)))
+                .filter(variant -> PortalFrame.isOpenCell(level.getBlockState(portalPos)))
                 .map(variant -> new Ignition(portalPos, face, variant));
     }
 
     private static Optional<PortalVariant> findVariantForFrame(BlockState frame) {
-        return Optional.ofNullable(VARIANTS_BY_FRAME.get(MiningPortalShape.resolveInfestedHost(frame)));
+        return Optional.ofNullable(VARIANTS_BY_FRAME.get(PortalFrame.resolveInfestedHost(frame)));
     }
 
-    private static List<MiningPortalShape> findEmptyFrames(BlockGetter level, Ignition ignition) {
-        MiningPortalBlock portalBlock =
+    private static List<PortalFrame> findEmptyFrames(BlockGetter level, Ignition ignition) {
+        DimensionPortalBlock portalBlock =
                 PortalRegisters.getPortalBlock(ignition.variant()).get();
         return PORTAL_AXES.stream()
-                .map(axis -> new MiningPortalShape(level, ignition.portalPos(), axis, portalBlock))
-                .filter(MiningPortalShape::isEmptyFrame)
+                .map(axis -> new PortalFrame(level, ignition.portalPos(), axis, portalBlock))
+                .filter(PortalFrame::isEmptyFrame)
                 .toList();
     }
 
     private static void showCornerHint(PlayerInteractEvent.RightClickBlock event, PortalVariant variant) {
         Level level = event.getLevel();
         if (!level.isClientSide() && level.dimension().equals(Level.OVERWORLD)) {
-            event.getEntity().displayClientMessage(Component.translatable(variant.cornerHintKey()), true);
+            event.getEntity().displayClientMessage(Component.translatable(variant.getCornerHintKey()), true);
         }
     }
 

@@ -11,7 +11,7 @@ displayURL = "https://github.com/EjafiSoftware/minecraft-egmd"
 logoFile = "logo.png"
 authors = "Ejafi Games"
 description = '''
-Ejafi Games Mining Dimensions (EGMD) adds three flat, ore-rich mining dimensions to your Minecraft world, each reached through its own portal from the Overworld.
+Ejafi Games Mining Dimensions (EGMD) adds three flat, ore-rich mining dimensions and the Haunted dimension to your Minecraft world, each reached through its own portal from the Overworld.
 '''
 
 [[dependencies."${mod_id}"]]

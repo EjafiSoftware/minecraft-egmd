@@ -90,9 +90,9 @@ final class PortalPositionFinder {
 
     static BlockPos clampInsideBorder(WorldBorder border, BlockPos pos) {
         int minX = Mth.ceil(border.getMinX()) + 1;
-        int maxX = Mth.floor(border.getMaxX()) - MiningPortalShape.MIN_WIDTH - 1;
+        int maxX = Mth.floor(border.getMaxX()) - PortalFrame.MIN_WIDTH - 1;
         int minZ = Mth.ceil(border.getMinZ()) + 1;
-        int maxZ = Mth.floor(border.getMaxZ()) - MiningPortalShape.MIN_WIDTH - 1;
+        int maxZ = Mth.floor(border.getMaxZ()) - PortalFrame.MIN_WIDTH - 1;
         if (minX > maxX || minZ > maxZ) {
             return pos;
         }
@@ -100,7 +100,7 @@ final class PortalPositionFinder {
     }
 
     private static void loadChunks(LevelReader level, BlockPos center) {
-        int reach = SPIRAL_RADIUS + MiningPortalShape.MIN_WIDTH;
+        int reach = SPIRAL_RADIUS + PortalFrame.MIN_WIDTH;
         for (int x = (center.getX() - reach) >> 4; x <= (center.getX() + reach) >> 4; x++) {
             for (int z = (center.getZ() - reach) >> 4; z <= (center.getZ() + reach) >> 4; z++) {
                 level.getChunk(x, z);

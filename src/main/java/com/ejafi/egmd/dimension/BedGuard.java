@@ -1,9 +1,9 @@
 package com.ejafi.egmd.dimension;
 
 import com.ejafi.egmd.EGMD;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -19,16 +19,15 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 public final class BedGuard {
     private BedGuard() {}
 
-    static boolean allowsUse(BlockState state, ResourceKey<Level> dimension) {
-        return !(state.getBlock() instanceof BedBlock)
-                || MiningDimension.findByLevelKey(dimension).isEmpty();
+    static boolean allowsUse(BlockState state, Set<Restriction> restrictions) {
+        return !(state.getBlock() instanceof BedBlock) || !restrictions.contains(Restriction.NO_BEDS);
     }
 
     @SubscribeEvent
     public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Level level = event.getLevel();
         if (event.getHand() != InteractionHand.MAIN_HAND
-                || allowsUse(level.getBlockState(event.getPos()), level.dimension())
+                || allowsUse(level.getBlockState(event.getPos()), EgmdDimensions.getRestrictions(level.dimension()))
                 || bypassesBlockUse(event)) {
             return;
         }

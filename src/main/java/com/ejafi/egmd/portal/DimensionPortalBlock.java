@@ -1,7 +1,8 @@
 package com.ejafi.egmd.portal;
 
+import com.ejafi.egmd.dimension.EgmdDimensions;
 import com.ejafi.egmd.dimension.HostileMobGuard;
-import com.ejafi.egmd.dimension.MiningDimension;
+import com.ejafi.egmd.dimension.Terrain;
 import com.mojang.logging.LogUtils;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +44,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
-public final class MiningPortalBlock extends Block implements Portal, LiquidBlockContainer {
+public final class DimensionPortalBlock extends Block implements Portal, LiquidBlockContainer {
     public static final EnumProperty<Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final VoxelShape X_AXIS_PANE = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
@@ -53,7 +54,7 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
     private final PortalVariant variant;
     private final int particleColor;
 
-    MiningPortalBlock(BlockBehaviour.Properties properties, PortalVariant variant) {
+    DimensionPortalBlock(BlockBehaviour.Properties properties, PortalVariant variant) {
         super(properties);
         this.variant = variant;
         this.particleColor = PARTICLE_ALPHA << 24 | (variant.tintColor() & 0xFFFFFF);
@@ -165,7 +166,7 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
         Axis sourceAxis = serverLevel.getBlockState(pos).getOptionalValue(AXIS).orElse(Axis.X);
         ArrivalTarget target = computeArrivalTarget(new PortalFootprint(scaledPos, sourceAxis), destination);
         Map<PortalCorner, BlockState> exitCorners = PortalCornerMaterials.create(variant)
-                .copyAll(new MiningPortalShape(serverLevel, pos, sourceAxis, this).readCorners());
+                .copyAll(new PortalFrame(serverLevel, pos, sourceAxis, this).readCorners());
 
         Optional<BlockUtil.FoundRectangle> exitPortal =
                 new ExitPortalFinder(destLevel, variant).findOrCreate(target, exitCorners);
@@ -199,7 +200,7 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
             return new PortalRoute.Unlinked();
         }
 
-        if (!HostileMobGuard.admits(traveler, destination)) {
+        if (!HostileMobGuard.admits(traveler, EgmdDimensions.getRestrictions(destination))) {
             return new PortalRoute.Refused();
         }
 
@@ -218,9 +219,13 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
     }
 
     static ArrivalTarget computeArrivalTarget(PortalFootprint scaled, ResourceKey<Level> destination) {
-        return MiningDimension.findByLevelKey(destination)
-                .<ArrivalTarget>map(mining -> new ArrivalTarget.OnFlatSurface(
-                        new PortalFootprint(scaled.origin().atY(mining.computeSurfaceY()), scaled.axis())))
+        return EgmdDimensions.find(destination)
+                .<ArrivalTarget>map(dimension -> switch (dimension.terrain()) {
+                    case Terrain.Flat flat ->
+                        new ArrivalTarget.OnFlatSurface(
+                                new PortalFootprint(scaled.origin().atY(flat.computeSurfaceY()), scaled.axis()));
+                    case Terrain.Generated generated -> new ArrivalTarget.OnTerrain(scaled);
+                })
                 .orElseGet(() -> new ArrivalTarget.OnTerrain(scaled));
     }
 
@@ -257,7 +262,7 @@ public final class MiningPortalBlock extends Block implements Portal, LiquidBloc
         Axis axis = state.getValue(AXIS);
         return !isAcrossPlane(axis, direction)
                         && !neighborState.is(this)
-                        && !new MiningPortalShape(level, pos, axis, this).isComplete()
+                        && !new PortalFrame(level, pos, axis, this).isComplete()
                 ? Blocks.AIR.defaultBlockState()
                 : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
