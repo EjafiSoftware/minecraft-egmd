@@ -19,7 +19,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 /** Stands in for a level in unit tests, because the FML test runtime loads no world. */
-public final class FakeLevel implements CollisionGetter, LevelWriter {
+final class FakeLevel implements CollisionGetter, LevelWriter {
     private final Map<BlockPos, BlockState> blocks = new HashMap<>();
     private final WorldBorder worldBorder = new WorldBorder();
 

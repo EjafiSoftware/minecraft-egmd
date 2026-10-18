@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
 
-public final class FlatTerrainFaker {
+final class FlatTerrainFaker {
     private static final Faker FAKER = new Faker();
     private static final int MAX_LAYER_COUNT = 4;
     private static final int MAX_LAYER_HEIGHT = 64;
@@ -27,21 +27,21 @@ public final class FlatTerrainFaker {
             .limit(FAKER.number().numberBetween(1, MAX_LAYER_COUNT + 1))
             .toList();
 
-    public static FlatLayerInfo generateLayer(int height) {
+    static FlatLayerInfo generateLayer(int height) {
         return new FlatLayerInfo(height, FAKER.options().nextElement(LAYER_BLOCKS));
     }
 
-    public FlatTerrainFaker withMinY(int minY) {
+    FlatTerrainFaker withMinY(int minY) {
         this.minY = minY;
         return this;
     }
 
-    public FlatTerrainFaker withLayers(List<FlatLayerInfo> layers) {
+    FlatTerrainFaker withLayers(List<FlatLayerInfo> layers) {
         this.layers = layers;
         return this;
     }
 
-    public Terrain.Flat generate() {
+    Terrain.Flat generate() {
         return new Terrain.Flat(minY, layers);
     }
 }
