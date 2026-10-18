@@ -101,7 +101,7 @@ final class PortalPositionFinder {
 
     private static PortalFootprint moveToSurface(LevelReader level, PortalFootprint column) {
         BlockPos origin = column.origin();
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, origin.getX(), origin.getZ());
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.getX(), origin.getZ());
         return new PortalFootprint(origin.atY(surfaceY), column.axis());
     }
 

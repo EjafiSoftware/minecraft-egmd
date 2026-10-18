@@ -41,6 +41,19 @@ public final class PortalExitSelectorGameTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void select_returns_back_side_when_lava_fills_front(GameTestHelper helper) {
+        PortalGameTestSupport.buildOpenPortalAtOrigin(helper, Axis.X);
+        pourLava(helper, FRONT_EXIT);
+
+        PortalExit exit = selectExitAtOrigin(helper);
+
+        Vec3 behindPortalSeam =
+                Vec3.atBottomCenterOf(helper.absolutePos(ORIGIN.north())).add(0.5, 0.0, 0.0);
+        helper.assertValueEqual(exit, new PortalExit(behindPortalSeam, Direction.NORTH.toYRot()), "exit");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void select_returns_inside_portal_when_both_sides_are_blocked(GameTestHelper helper) {
         PortalGameTestSupport.buildOpenPortalAtOrigin(helper, Axis.X);
         blockCells(helper, FRONT_EXIT);
@@ -61,6 +74,10 @@ public final class PortalExitSelectorGameTests {
 
     private static void blockCells(GameTestHelper helper, List<BlockPos> cells) {
         cells.forEach(cell -> helper.setBlock(cell, Blocks.STONE));
+    }
+
+    private static void pourLava(GameTestHelper helper, List<BlockPos> cells) {
+        cells.forEach(cell -> helper.setBlock(cell, Blocks.LAVA));
     }
 
     private static PortalExit selectExitAtOrigin(GameTestHelper helper) {

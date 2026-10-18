@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.1]
+
+### Fixed
+- A new exit portal is built on the ground instead of on top of trees.
+- Portal travelers no longer step out into lava or fire.
+
 ## [2.1.0]
 
 ### Added

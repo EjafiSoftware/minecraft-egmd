@@ -239,13 +239,13 @@ Each copied state is replaced by the default state of its infested host, and a b
 
 ### Placement search
 
-`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING` heightmap.
+`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING_NO_LEAVES` heightmap, so a portal is built under a tree canopy rather than on top of it.
 
 With no open site, the finder forces one at the target column, provided `canForce` holds. Forcing needs every cell to be overwritable, meaning no block entity, no portal, and no unbreakable block. On terrain, the forced Y is clamped between `max(minY + 1, 70)` and `minY + min(height, logicalHeight) - 10`. `PortalStructureBuilder` clears the exit cells of a forced site before building.
 
 ### Exit selection
 
-`PortalExitSelector` tries the cell in front of the portal, then the cell behind it. A candidate is safe when the block below has a sturdy top face and the entity's bounding box has no collision there. When neither is safe, the entity arrives inside the portal at the position vanilla `PortalShape.findCollisionFreePosition` returns.
+`PortalExitSelector` tries the cell in front of the portal, then the cell behind it. A candidate is safe when the block below has a sturdy top face, and the entity's bounding box there has no collision and touches no fire or lava. When neither is safe, the entity arrives inside the portal at the position vanilla `PortalShape.findCollisionFreePosition` returns.
 
 ### Login rescue
 
