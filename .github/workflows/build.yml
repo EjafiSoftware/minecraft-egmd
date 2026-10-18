@@ -4,18 +4,24 @@ on:
   push:
     branches: [main]
     tags: ['[0-9]+.[0-9]+.[0-9]+']
+    paths-ignore: ['**.md']
   pull_request:
+    paths-ignore: ['**.md']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   gate:
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.2.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.2.1
     permissions:
       contents: write
       packages: read
 
   codeql:
-    if: github.ref_type != 'tag'
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-codeql.yml@v1.2.0
+    if: github.ref == 'refs/heads/main'
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-codeql.yml@v1.2.1
     permissions:
       contents: read
       packages: read
@@ -24,6 +30,6 @@ jobs:
   release:
     if: github.ref_type == 'tag'
     needs: gate
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.2.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.2.1
     permissions:
       contents: write
