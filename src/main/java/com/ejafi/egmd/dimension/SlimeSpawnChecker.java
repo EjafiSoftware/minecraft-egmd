@@ -31,7 +31,7 @@ public final class SlimeSpawnChecker {
     public static void onSpawnPlacementCheck(MobSpawnEvent.SpawnPlacementCheck event) {
         ServerLevelAccessor level = event.getLevel();
         BlockPos pos = event.getPos();
-        if (event.getEntityType() != EntityType.SLIME
+        if (!EntityType.SLIME.equals(event.getEntityType())
                 || event.getDefaultResult()
                 || MobSpawnType.isSpawner(event.getSpawnType())
                 || level.getDifficulty() == Difficulty.PEACEFUL

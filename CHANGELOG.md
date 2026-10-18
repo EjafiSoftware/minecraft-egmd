@@ -65,7 +65,7 @@
 
 ## [1.2.0]
 
-**Note**: License changed from All Rights Reserved to MIT.  I meant to do that before I released it, but I forgot.
+**Note**: License changed from All Rights Reserved to MIT. I meant to do that before I released it, but I forgot.
 
 ### Fixed
 - Teleporting now finds existing destination portals even when their chunks are unloaded, instead of building a duplicate portal nearby

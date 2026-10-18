@@ -45,8 +45,9 @@ final class PortalFrame {
         portalBlockCount = isValid() ? countPortalBlocks() : 0;
     }
 
-    private @Nullable BlockPos calculateBottomLeft(BlockPos pos) {
-        int lowestY = Math.max(level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
+    private @Nullable BlockPos calculateBottomLeft(BlockPos start) {
+        int lowestY = Math.max(level.getMinBuildHeight(), start.getY() - MAX_HEIGHT);
+        BlockPos pos = start;
         while (pos.getY() > lowestY && isEmpty(level.getBlockState(pos.below()))) {
             pos = pos.below();
         }

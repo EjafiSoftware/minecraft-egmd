@@ -43,7 +43,7 @@ final class EgmdBlockLootProvider extends BlockLootSubProvider {
     protected Iterable<Block> getKnownBlocks() {
         return BuiltInRegistries.BLOCK.stream()
                 .filter(block ->
-                        BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(EGMD.MOD_ID))
+                        EGMD.MOD_ID.equals(BuiltInRegistries.BLOCK.getKey(block).getNamespace()))
                 .toList();
     }
 }

@@ -31,7 +31,9 @@ Infested blocks count as the block they imitate, in both the frame and the corne
 
 **End Mining** has Prismarine veins mixed with Prismarine Bricks and Dark Prismarine, along with Sea Lanterns and Pearl Blocks. A Pearl Block mined with a pickaxe drops 1 to 4 Ender Pearls, plus up to one more per Fortune level, or drops itself with Silk Touch.
 
-**Haunted** is a dark forest where it is always midnight, though the moon still goes through its phases. Its terrain, caves, oceans, and ores are like the Overworld's. It is covered in Dark Oak trees, huge mushrooms, Pumpkins, Carved Pumpkins, Jack o'Lanterns, Cobwebs, and patches of Soul Sand, and it has no villages or other structures. Spiders and Slimes spawn often, along with Zombies and Skeletons, and torches keep them away as they do in the Overworld. Slimes spawn on the surface between Y 51 and 69 every night, whatever the moon phase, and in slime chunks below Y 40.
+**Haunted** is a dark forest where it is always midnight, though the moon still goes through its phases. Its terrain, caves, oceans, and ores are like the Overworld's. It is covered in Dark Oak trees, huge mushrooms, Pumpkins, Carved Pumpkins, Jack o'Lanterns, Cobwebs, and patches of Soul Sand, and it has no villages or other structures.
+
+Spiders and Slimes spawn often, along with Zombies and Skeletons, and torches keep them away as they do in the Overworld. Slimes spawn on the surface between Y 51 and 69 every night, whatever the moon phase, and in slime chunks below Y 40.
 
 ### Rules
 

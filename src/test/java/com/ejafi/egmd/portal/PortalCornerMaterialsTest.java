@@ -3,7 +3,7 @@ package com.ejafi.egmd.portal;
 import static com.ejafi.egmd.portal.PortalCornersFaker.fillCorners;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 import net.datafaker.Faker;
@@ -36,7 +36,7 @@ class PortalCornerMaterialsTest {
 
         Map<PortalCorner, BlockState> copied = materials.copyAll(source);
 
-        Map<PortalCorner, BlockState> expected = new HashMap<>(source);
+        Map<PortalCorner, BlockState> expected = new EnumMap<>(source);
         expected.put(rejectedCorner, fallback.defaultBlockState());
         assertThat(copied).isEqualTo(expected);
     }

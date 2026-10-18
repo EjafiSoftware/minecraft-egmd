@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for coding agents working in this repository.
+This file guides coding agents working in this repository.
 
 ## Project
 
@@ -17,13 +17,13 @@ Guidance for coding agents working in this repository.
 
 | Command | What it does |
 |---|---|
-| `./gradlew build` | Spotless check with palantir-java-format, compile under Error Prone with NullAway at error severity, unit tests, and the jar in `build/libs/` |
+| `./gradlew build` | Spotless check with palantir-java-format, compile under Error Prone with NullAway at error severity, PMD and CPD over every source set, unit tests, and the jar in `build/libs/` |
 | `./gradlew runGameTestServer` | Runs every GameTest in the `egmd` namespace and exits |
 | `./gradlew runData` | Regenerates `src/generated/resources/` |
 | `./gradlew spotlessApply` | Formats every Java source set |
 | `./gradlew runClient`, `./gradlew runServer` | Dev runs. Both load the `gameTest` source set and enable the `egmd` GameTest namespace, so `/test` works in them. |
 
-**The gate** is `./gradlew runData` with `git status --porcelain` printing nothing, then `./gradlew build`, then `./gradlew runGameTestServer`, and all of them must pass before work is done. CI (`.github/workflows/build.yml`) runs the same steps through the shared `mod-gate.yml` workflow.
+**The gate** is `./gradlew runData` with `git status --porcelain` printing nothing, then `./gradlew build`, then `./gradlew runGameTestServer`, and all of them must pass before work is done. CI (`.github/workflows/build.yml`) runs the same steps through the shared `mod-gate.yml` workflow, which also reviews dependency changes on pull requests. CI also runs CodeQL through `mod-codeql.yml` on pushes to `main`, and skips changes that touch only markdown. Dependabot (`.github/dependabot.yml`) opens monthly grouped updates for Gradle and GitHub Actions.
 
 ### Build configuration
 
@@ -175,7 +175,9 @@ Each variant also names its corner tag, `egmd:<id>_corners`, its corner hint key
 
 ### Lighting a portal
 
-`PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame. The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
+`PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame.
+
+The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
 
 The corners are the cells diagonal to the interior rectangle, which `PortalFrame.readCorners()` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `isValid`, `isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
 
@@ -235,21 +237,29 @@ A move to the Overworld spawn takes the spawn column's `MOTION_BLOCKING_NO_LEAVE
 
 `HostileMobGuard` and `BedGuard` take the current dimension's restrictions from `EgmdDimensions.getRestrictions`, which is empty for a vanilla dimension.
 
-The mining biomes spawn no mobs. Where `NO_HOSTILE_MOBS` applies, `HostileMobGuard` also cancels, on the server, any `EntityJoinLevelEvent` whose entity or passengers include an `Enemy` other than a `WitherBoss`, so mobs from spawners, commands, and portals are all stopped. The Wither is exempt so that one a player summons inside a mining dimension is not canceled after its skulls and Soul Sand are used up. A Wither never arrives through a portal, because vanilla `WitherBoss.canUsePortal` returns false and it cannot ride anything. A Wither carrying any other hostile mob is still refused.
+The mining biomes spawn no mobs. Where `NO_HOSTILE_MOBS` applies, `HostileMobGuard` also cancels, on the server, any `EntityJoinLevelEvent` whose entity or passengers include an `Enemy` other than a `WitherBoss`, so mobs from spawners, commands, and portals are all stopped.
 
-Every EGMD dimension type sets `has_raids` to false. `EgmdLevels` sets `bed_works` to false wherever `NO_BEDS` applies, so the dimension type and `BedGuard` read the same definition. With `bed_works` false, vanilla `BedBlock.useWithoutItem` blows the bed up, and that method is the only path to the explosion. `BedGuard` handles the main-hand `PlayerInteractEvent.RightClickBlock` on both sides. When the pure `allowsUse` decision refuses a `BedBlock` and vanilla would use the bed, it cancels the click with `InteractionResult.SUCCESS`, and the server shows `message.egmd.bed.refused` on the action bar. Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard` mirrors that check from `ServerPlayerGameMode.useItemOn` and leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
+The Wither is exempt so that one a player summons inside a mining dimension is not canceled after its skulls and Soul Sand are used up. A Wither never arrives through a portal, because vanilla `WitherBoss.canUsePortal` returns false and it cannot ride anything. A Wither carrying any other hostile mob is still refused.
+
+Every EGMD dimension type sets `has_raids` to false. `EgmdLevels` sets `bed_works` to false wherever `NO_BEDS` applies, so the dimension type and `BedGuard` read the same definition. With `bed_works` false, vanilla `BedBlock.useWithoutItem` blows the bed up, and that method is the only path to the explosion.
+
+`BedGuard` handles the main-hand `PlayerInteractEvent.RightClickBlock` on both sides. When the pure `allowsUse` decision refuses a `BedBlock` and vanilla would use the bed, it cancels the click with `InteractionResult.SUCCESS`, and the server shows `message.egmd.bed.refused` on the action bar.
+
+Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard` mirrors that check from `ServerPlayerGameMode.useItemOn` and leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
 
 ### The Haunted dimension
 
 The Haunted dimension type fixes the time at 18000, which is midnight. Vanilla `DimensionType.moonPhase` ignores the fixed time and counts the Overworld's days, so the moon still cycles through its phases. Sky light and the Overworld sky effects stay on, so the moon shows, and the monster spawn light settings match the Overworld, so torches stop spawns.
 
-Haunted Woods spawns Spiders and Slimes at weight 100 each, Zombies and Skeletons at 40, and Bats as ambient mobs. Vanilla `Slime.checkSlimeSpawnRules` allows a surface slime only in a biome tagged `minecraft:allows_surface_slime_spawns`, between Y 51 and 69, with odds scaled by moon brightness. Haunted Woods is in `egmd:allows_full_moon_slime_spawns` instead. When the vanilla check fails for a natural slime in a biome with that tag, `SlimeSpawnChecker` repeats the surface rule with the moon brightness of a full moon and allows the spawn when it passes. Slime chunks below Y 40 still spawn slimes through the vanilla check.
+Haunted Woods spawns Spiders and Slimes at weight 100 each, Zombies and Skeletons at 40, and Bats as ambient mobs. Vanilla `Slime.checkSlimeSpawnRules` allows a surface slime only in a biome tagged `minecraft:allows_surface_slime_spawns`, between Y 51 and 69, with odds scaled by moon brightness.
+
+Haunted Woods is in `egmd:allows_full_moon_slime_spawns` instead. When the vanilla check fails for a natural slime in a biome with that tag, `SlimeSpawnChecker` repeats the surface rule with the moon brightness of a full moon and allows the spawn when it passes. Slime chunks below Y 40 still spawn slimes through the vanilla check.
 
 The biome generates the vanilla Overworld carvers, lakes, geodes, dungeons, springs, ores, and soft disks, the Dark Forest vegetation, fossils, and the patches and disks from `HauntedFeatures`. The level stem uses a `FixedBiomeSource`, and the biome is in no structure tag, so no structures generate.
 
 ### Registration
 
-Each feature package owns its registers and exposes `register(IEventBus)`, which `EGMD` calls: `PortalRegisters` for portal blocks, POI types, and the particle type, and `PearlBlocks` for the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
+Each feature package owns its registers and exposes `register(IEventBus)`, which `EGMD` calls. `PortalRegisters` registers the portal blocks, POI types, and the particle type, and `PearlBlocks` registers the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
 
 ### Data generation
 
@@ -257,7 +267,9 @@ Every file a data provider can produce comes from `./gradlew runData`, which wri
 
 ### Terrain and surface Y
 
-`Terrain.minY()` sets each dimension type's `min_y`. A `Flat` terrain holds its flat layers, `EgmdLevels` builds the flat level stem from them, and `computeSurfaceY()` returns min Y plus the total layer height. Portal placement uses that value, so the generated surface and the portal height come from one definition. The surfaces are Y 68 in Overworld Mining, Y 129 in Nether Mining, and Y 65 in End Mining. A `Generated` terrain's min Y must match its noise settings, which is Y -64 for `minecraft:overworld`.
+`Terrain.minY()` sets each dimension type's `min_y`. A `Flat` terrain holds its flat layers, `EgmdLevels` builds the flat level stem from them, and `computeSurfaceY()` returns min Y plus the total layer height. Portal placement uses that value, so the generated surface and the portal height come from one definition.
+
+The surfaces are Y 68 in Overworld Mining, Y 129 in Nether Mining, and Y 65 in End Mining. A `Generated` terrain's min Y must match its noise settings, which is Y -64 for `minecraft:overworld`.
 
 ### Event buses
 
@@ -271,7 +283,9 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 ## Testing
 
-**Unit tests** live in `src/test` and run on JUnit 5 through ModDevGradle's `unitTest` support with `net.neoforged:testframework`. World reads and writes go through `FakeLevel`, which implements `CollisionGetter` (and through it `BlockGetter`) and `LevelWriter`. The unit-test runtime binds no data tags, so every tag is empty there. A unit test therefore never checks tag membership, and logic that depends on a tag takes a `Predicate<BlockState>` that the test supplies, as `PortalCornerMaterials` does. Tag contents are tested in GameTests, where the server loads data tags.
+**Unit tests** live in `src/test` and run on JUnit 5 through ModDevGradle's `unitTest` support with `net.neoforged:testframework`. World reads and writes go through `FakeLevel`, which implements `CollisionGetter` (and through it `BlockGetter`) and `LevelWriter`. The unit-test runtime binds no data tags, so every tag is empty there.
+
+A unit test therefore never checks tag membership, and logic that depends on a tag takes a `Predicate<BlockState>` that the test supplies, as `PortalCornerMaterials` does. Tag contents are tested in GameTests, where the server loads data tags.
 
 **GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(EGMD.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
 
@@ -279,11 +293,11 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 ## Coding standards
 
-Code follows the frie-skills skills: `brandon-standards` with its `references/java.md`, `neoforge-modding`, and `engineering-patterns`. Only the repo-specific facts below are recorded here.
+Code follows the frie-skills skills `brandon-standards` with its `references/java.md`, `neoforge-modding`, and `engineering-patterns`. Only the repo-specific facts below are recorded here.
 
 - The mod has no `api` package.
 - Each fixed translation key is a constant in its feature (`DimensionMessages`, `PortalMessages`, `PortalConfig`), and its English text is in `EgmdLanguageProvider`. Corner hint keys come from `PortalVariant.getCornerHintKey()`.
-- The igniter tag key is `PortalIgnitionHandler.PORTAL_IGNITERS`, and its contents are in `EgmdItemTagsProvider`: Flint and Steel, the optional `c:tools/igniter` tag, and the optional `create_unbreakable_tools_series:unbreakable_netherite_flint_and_steel`.
+- The igniter tag key is `PortalIgnitionHandler.PORTAL_IGNITERS`, and its contents in `EgmdItemTagsProvider` are Flint and Steel, the optional `c:tools/igniter` tag, and the optional `create_unbreakable_tools_series:unbreakable_netherite_flint_and_steel`.
 - The full moon slime biome tag key is `SlimeSpawnChecker.ALLOWS_FULL_MOON_SLIME_SPAWNS`, and its contents are in `EgmdBiomeTagsProvider`.
 - Each corner tag key comes from `PortalVariant.getCornerTag()`, and its contents are in `EgmdBlockTagsProvider`. The `c:` tags are required references, since data generation loads NeoForge alongside the mod.
 
