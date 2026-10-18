@@ -2,6 +2,7 @@ package com.ejafi.egmd.datagen;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.dimension.DimensionMessages;
+import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.pearl.PearlBlocks;
 import com.ejafi.egmd.portal.PortalConfig;
 import com.ejafi.egmd.portal.PortalMessages;
@@ -27,10 +28,10 @@ final class EgmdLanguageProvider extends LanguageProvider {
         addPortal(PortalVariants.HAUNTED, "Haunted Portal");
         addBlock(PearlBlocks.PEARL_BLOCK, "Pearl Block");
 
-        addBiomeName(MiningBiomes.MINING_PLAINS, "Mining Plains");
-        addBiomeName(MiningBiomes.NETHER_MINING_WASTES, "Nether Mining Wastes");
-        addBiomeName(MiningBiomes.END_MINING_WASTES, "End Mining Wastes");
-        addBiomeName(HauntedBiomes.HAUNTED_WOODS, "Haunted Woods");
+        addBiomeName(EgmdBiomes.MINING_PLAINS, "Mining Plains");
+        addBiomeName(EgmdBiomes.NETHER_MINING_WASTES, "Nether Mining Wastes");
+        addBiomeName(EgmdBiomes.END_MINING_WASTES, "End Mining Wastes");
+        addBiomeName(EgmdBiomes.HAUNTED_WOODS, "Haunted Woods");
 
         add(
                 DimensionMessages.LOGIN_RELOCATED,
