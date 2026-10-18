@@ -142,7 +142,14 @@ src/gameTest/java/com/ejafi/egmd/
 ├── pearl/
 │   └── PearlBlockGameTests.java
 └── portal/
-    └── PortalGameTests.java
+    ├── PortalGameTestSupport.java         # Shared portal origin, portal states, frame at origin, and interior assertion
+    ├── DimensionPortalBlockGameTests.java
+    ├── ExitPortalFinderGameTests.java
+    ├── PortalCornerMaterialsGameTests.java
+    ├── PortalExitSelectorGameTests.java
+    ├── PortalIgnitionHandlerGameTests.java
+    ├── PortalPositionFinderGameTests.java
+    └── PortalStructureBuilderGameTests.java
 ```
 
 ## How it works

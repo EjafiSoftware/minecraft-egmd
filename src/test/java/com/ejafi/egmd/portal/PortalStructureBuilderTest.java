@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +50,17 @@ class PortalStructureBuilderTest {
                 .map(level::getBlockState)
                 .toList();
         assertThat(nonCornerStates).containsOnly(portalBlock.getFrameBlock().defaultBlockState());
+    }
+
+    @Test
+    void build_clearsExitCells_whenSiteIsForced() {
+        PortalFootprint footprint = new PortalFootprintFaker().generate();
+        footprint.listExitCells().forEach(pos -> level.setBlock(pos, Blocks.STONE.defaultBlockState(), 0));
+
+        builder.build(level, new PortalSite.Forced(footprint));
+
+        assertThat(footprint.listExitCells().stream().map(level::getBlockState))
+                .containsOnly(Blocks.AIR.defaultBlockState());
     }
 
     private Map<PortalCorner, BlockState> readCorners(PortalFootprint footprint) {
