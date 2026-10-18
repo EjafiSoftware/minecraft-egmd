@@ -56,9 +56,9 @@ com.ejafi.egmd/
 │   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
 │   ├── ArrivalTarget.java                 # Where an exit portal goes: OnFlatSurface for flat terrain, or OnTerrain elsewhere
 │   ├── ExitPortalFinder.java              # Finds an existing exit portal through the POI search, or builds one at a site PortalPositionFinder picks
-│   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site
+│   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site; judges canHost and canForce
 │   ├── PortalSite.java                    # An Open site, or a Forced site whose exit cells must be cleared
-│   ├── PortalFootprint.java               # The frame, corner, portal, exit, and platform cells of a generated portal; judges canHost and canForce
+│   ├── PortalFootprint.java               # The plane, frame, corner, exit, and platform cells of a generated portal, and its PortalFrame
 │   ├── PortalStructureBuilder.java        # Writes a portal, its frame with the given corner blocks, and its platform to a LevelWriter; clears the exit of a forced site
 │   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a PortalFrame
 │   ├── PortalExitSelector.java            # Picks the first safe arrival for an entity: front, then back, else inside
@@ -217,9 +217,9 @@ Each copied state is replaced by the default state of its infested host, and a b
 
 ### Placement search
 
-`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `PortalFootprint.canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING` heightmap.
+`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING` heightmap.
 
-With no open site, the finder forces one at the target column, provided `PortalFootprint.canForce` holds. Forcing needs every cell to be overwritable, meaning no block entity, no portal, and no unbreakable block. On terrain, the forced Y is clamped between `max(minY + 1, 70)` and `minY + min(height, logicalHeight) - 10`. `PortalStructureBuilder` clears the exit cells of a forced site before building.
+With no open site, the finder forces one at the target column, provided `canForce` holds. Forcing needs every cell to be overwritable, meaning no block entity, no portal, and no unbreakable block. On terrain, the forced Y is clamped between `max(minY + 1, 70)` and `minY + min(height, logicalHeight) - 10`. `PortalStructureBuilder` clears the exit cells of a forced site before building.
 
 ### Exit selection
 
