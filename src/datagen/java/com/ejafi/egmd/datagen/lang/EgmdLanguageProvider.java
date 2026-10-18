@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.lang;
 
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.dimension.DimensionMessages;
@@ -15,8 +15,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
-final class EgmdLanguageProvider extends LanguageProvider {
-    EgmdLanguageProvider(PackOutput output) {
+public final class EgmdLanguageProvider extends LanguageProvider {
+    public EgmdLanguageProvider(PackOutput output) {
         super(output, Egmd.MOD_ID, "en_us");
     }
 

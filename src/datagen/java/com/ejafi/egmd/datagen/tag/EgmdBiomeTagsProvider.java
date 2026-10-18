@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.tag;
 
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.dimension.EgmdBiomes;
@@ -9,8 +9,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.BiomeTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-final class EgmdBiomeTagsProvider extends BiomeTagsProvider {
-    EgmdBiomeTagsProvider(
+public final class EgmdBiomeTagsProvider extends BiomeTagsProvider {
+    public EgmdBiomeTagsProvider(
             PackOutput output, CompletableFuture<HolderLookup.Provider> lookup, ExistingFileHelper fileHelper) {
         super(output, lookup, Egmd.MOD_ID, fileHelper);
     }

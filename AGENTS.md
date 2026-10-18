@@ -86,20 +86,29 @@ com.ejafi.egmd/
 ```
 com.ejafi.egmd.datagen/
 ├── DataGatherer.java                      # GatherDataEvent subscriber that registers every provider and the datapack registry set
-├── EgmdBlockStateProvider.java            # Portal and pearl_block block states, block models, and the pearl_block item model
-├── EgmdLanguageProvider.java              # en_us translations
-├── EgmdBlockTagsProvider.java             # minecraft:mineable/pickaxe and the egmd:*_corners tags
-├── EgmdItemTagsProvider.java              # egmd:portal_igniters
-├── EgmdBiomeTagsProvider.java             # egmd:allows_full_moon_slime_spawns
-├── EgmdBlockLootProvider.java             # pearl_block loot table: itself with Silk Touch, else 1 to 4 Ender Pearls with a Fortune uniform bonus and explosion decay
-├── EgmdParticleDescriptionProvider.java   # portal_spark sprites (vanilla generic_0 to generic_7)
-├── EgmdLevels.java                        # One dimension type and level stem per EgmdDimension; the generator comes from its Terrain
-├── MiningOre.java                         # One ore: name, OreConfiguration, vein count per chunk, height range
-├── MiningOres.java                        # Every mining ore, listed once per dimension; bootstraps their configured and placed features
-├── MiningBiomes.java                      # The three mining biome definitions; each places its dimension's mod ores, then vanilla ones
-├── HauntedFeatures.java                   # Pumpkin, carved pumpkin, Jack o'Lantern, and cobweb patches, and soul sand disks
-└── HauntedBiomes.java                     # Haunted Woods: its spawns, effects, and generation
+├── model/
+│   └── EgmdBlockStateProvider.java        # Portal and pearl_block block states, block models, and the pearl_block item model
+├── particle/
+│   └── EgmdParticleDescriptionProvider.java # portal_spark sprites (vanilla generic_0 to generic_7)
+├── lang/
+│   └── EgmdLanguageProvider.java          # en_us translations
+├── tag/
+│   ├── EgmdBlockTagsProvider.java         # minecraft:mineable/pickaxe and the egmd:*_corners tags
+│   ├── EgmdItemTagsProvider.java          # egmd:portal_igniters
+│   └── EgmdBiomeTagsProvider.java         # egmd:allows_full_moon_slime_spawns
+├── loot/
+│   └── EgmdBlockLootProvider.java         # pearl_block loot table: itself with Silk Touch, else 1 to 4 Ender Pearls with a Fortune uniform bonus and explosion decay
+├── worldgen/
+│   ├── MiningOre.java                     # One ore: name, OreConfiguration, vein count per chunk, height range
+│   ├── MiningOres.java                    # Every mining ore, listed once per dimension; bootstraps their configured and placed features
+│   ├── MiningBiomes.java                  # The three mining biome definitions; each places its dimension's mod ores, then vanilla ones
+│   ├── HauntedFeatures.java               # Pumpkin, carved pumpkin, Jack o'Lantern, and cobweb patches, and soul sand disks
+│   └── HauntedBiomes.java                 # Haunted Woods: its spawns, effects, and generation
+└── dimension/
+    └── EgmdLevels.java                    # One dimension type and level stem per EgmdDimension; the generator comes from its Terrain, and the Overworld-like types share one factory
 ```
+
+Datagen packages are named for the data kind each provider produces, and `DataGatherer` at the root is the only class that reaches across them.
 
 ### Test source sets
 
@@ -167,7 +176,7 @@ A new dimension needs these additions and no change to any rule, the portal bloc
 
 1. An `EgmdDimension` constant in `EgmdDimensions`, appended to its `ALL` list.
 2. A `PortalVariant` constant in `PortalVariants`, appended to its `ALL` list.
-3. Its biome key in `EgmdBiomes`, and its biome and any features in a datagen class, called from the matching registry in `DataGatherer`.
+3. Its biome key in `EgmdBiomes`, and its biome and any features in a class in `datagen.worldgen`, called from the matching registry in `DataGatherer`.
 4. A `LevelDefinition` in `EgmdLevels`, with a dimension type factory.
 5. Its corner tag contents in `EgmdBlockTagsProvider`, and its portal name, corner hint, and biome name in `EgmdLanguageProvider`.
 

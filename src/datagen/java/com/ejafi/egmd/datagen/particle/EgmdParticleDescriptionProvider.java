@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.particle;
 
 import com.ejafi.egmd.portal.PortalRegisters;
 import net.minecraft.data.PackOutput;
@@ -6,11 +6,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.ParticleDescriptionProvider;
 
-final class EgmdParticleDescriptionProvider extends ParticleDescriptionProvider {
+public final class EgmdParticleDescriptionProvider extends ParticleDescriptionProvider {
     private static final ResourceLocation GENERIC_SPRITES = ResourceLocation.withDefaultNamespace("generic");
     private static final int GENERIC_SPRITE_COUNT = 8;
 
-    EgmdParticleDescriptionProvider(PackOutput output, ExistingFileHelper fileHelper) {
+    public EgmdParticleDescriptionProvider(PackOutput output, ExistingFileHelper fileHelper) {
         super(output, fileHelper);
     }
 

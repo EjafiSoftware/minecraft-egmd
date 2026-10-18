@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.worldgen;
 
 import com.ejafi.egmd.dimension.EgmdBiomes;
 import net.minecraft.core.particles.ParticleTypes;
@@ -16,12 +16,12 @@ import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 
-final class HauntedBiomes {
+public final class HauntedBiomes {
     private static final float ASH_DENSITY = 0.00625F;
 
     private HauntedBiomes() {}
 
-    static void bootstrap(BootstrapContext<Biome> context) {
+    public static void bootstrap(BootstrapContext<Biome> context) {
         context.register(EgmdBiomes.HAUNTED_WOODS, createHauntedWoods(context));
     }
 

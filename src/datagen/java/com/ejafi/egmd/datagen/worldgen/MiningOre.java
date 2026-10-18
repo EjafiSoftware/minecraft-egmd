@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.worldgen;
 
 import com.ejafi.egmd.Egmd;
 import net.minecraft.core.registries.Registries;

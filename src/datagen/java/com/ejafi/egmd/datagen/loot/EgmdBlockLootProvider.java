@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.loot;
 
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.pearl.PearlBlocks;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
-final class EgmdBlockLootProvider extends BlockLootSubProvider {
-    EgmdBlockLootProvider(HolderLookup.Provider registries) {
+public final class EgmdBlockLootProvider extends BlockLootSubProvider {
+    public EgmdBlockLootProvider(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
 

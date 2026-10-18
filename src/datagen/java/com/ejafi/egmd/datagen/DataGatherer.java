@@ -1,6 +1,18 @@
 package com.ejafi.egmd.datagen;
 
 import com.ejafi.egmd.Egmd;
+import com.ejafi.egmd.datagen.dimension.EgmdLevels;
+import com.ejafi.egmd.datagen.lang.EgmdLanguageProvider;
+import com.ejafi.egmd.datagen.loot.EgmdBlockLootProvider;
+import com.ejafi.egmd.datagen.model.EgmdBlockStateProvider;
+import com.ejafi.egmd.datagen.particle.EgmdParticleDescriptionProvider;
+import com.ejafi.egmd.datagen.tag.EgmdBiomeTagsProvider;
+import com.ejafi.egmd.datagen.tag.EgmdBlockTagsProvider;
+import com.ejafi.egmd.datagen.tag.EgmdItemTagsProvider;
+import com.ejafi.egmd.datagen.worldgen.HauntedBiomes;
+import com.ejafi.egmd.datagen.worldgen.HauntedFeatures;
+import com.ejafi.egmd.datagen.worldgen.MiningBiomes;
+import com.ejafi.egmd.datagen.worldgen.MiningOres;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.RegistrySetBuilder;

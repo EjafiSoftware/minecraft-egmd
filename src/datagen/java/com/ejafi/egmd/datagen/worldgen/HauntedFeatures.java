@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.worldgen;
 
 import com.ejafi.egmd.Egmd;
 import java.util.List;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 
-final class HauntedFeatures {
+public final class HauntedFeatures {
     static final ResourceKey<PlacedFeature> PUMPKIN_PATCH =
             Egmd.createKey(Registries.PLACED_FEATURE, "haunted_pumpkin_patch");
     static final ResourceKey<PlacedFeature> CARVED_PUMPKIN_PATCH =
@@ -51,7 +51,7 @@ final class HauntedFeatures {
 
     private HauntedFeatures() {}
 
-    static void bootstrapConfiguredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrapConfiguredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         context.register(CARVED_PUMPKIN_PATCH_FEATURE, createGrassPatch(Blocks.CARVED_PUMPKIN, SPARSE_PATCH_TRIES));
         context.register(JACK_O_LANTERN_PATCH_FEATURE, createGrassPatch(Blocks.JACK_O_LANTERN, SPARSE_PATCH_TRIES));
         context.register(COBWEB_PATCH_FEATURE, createGrassPatch(Blocks.COBWEB, DENSE_PATCH_TRIES));
@@ -66,7 +66,7 @@ final class HauntedFeatures {
                                 2)));
     }
 
-    static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
+    public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
         HolderGetter<ConfiguredFeature<?, ?>> features = context.lookup(Registries.CONFIGURED_FEATURE);
         context.register(
                 PUMPKIN_PATCH,

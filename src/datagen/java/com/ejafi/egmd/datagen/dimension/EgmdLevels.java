@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.dimension;
 
 import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.dimension.EgmdDimension;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 
-final class EgmdLevels {
+public final class EgmdLevels {
     private static final long NOON = 6000L;
     private static final long MIDNIGHT = 18000L;
     private static final DimensionType.MonsterSettings MINING_MONSTERS =
@@ -48,13 +48,13 @@ final class EgmdLevels {
 
     private EgmdLevels() {}
 
-    static void bootstrapDimensionTypes(BootstrapContext<DimensionType> context) {
+    public static void bootstrapDimensionTypes(BootstrapContext<DimensionType> context) {
         for (LevelDefinition level : ALL) {
             context.register(level.toTypeKey(), level.typeFactory().apply(level.dimension()));
         }
     }
 
-    static void bootstrapLevelStems(BootstrapContext<LevelStem> context) {
+    public static void bootstrapLevelStems(BootstrapContext<LevelStem> context) {
         HolderGetter<DimensionType> types = context.lookup(Registries.DIMENSION_TYPE);
         for (LevelDefinition level : ALL) {
             context.register(
