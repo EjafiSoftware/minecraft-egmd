@@ -133,7 +133,7 @@ src/test/java/com/ejafi/egmd/
     └── PortalStructureBuilderTest.java
 
 src/gameTest/java/com/ejafi/egmd/
-├── GameTestTemplates.java                 # Template name constants (EMPTY_7X7X7)
+├── GameTestTemplates.java                 # Template name constant EMPTY_7X7X7 and its center position, EMPTY_7X7X7_CENTER
 ├── dimension/
 │   ├── BedGuardGameTests.java
 │   ├── ClearSpaceFinderGameTests.java

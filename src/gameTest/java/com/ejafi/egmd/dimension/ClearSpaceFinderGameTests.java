@@ -17,7 +17,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ClearSpaceFinderGameTests {
     private static final Faker FAKER = new Faker();
-    private static final BlockPos START = new BlockPos(3, 1, 3);
     private static final int MAX_BURIAL_DEPTH = 4;
 
     private ClearSpaceFinderGameTests() {}
@@ -26,22 +25,26 @@ public final class ClearSpaceFinderGameTests {
     public static void find_above_returns_first_open_spot_above_when_start_is_buried(GameTestHelper helper) {
         int depth = FAKER.number().numberBetween(1, MAX_BURIAL_DEPTH + 1);
         for (int y = 0; y < depth; y++) {
-            helper.setBlock(START.above(y), Blocks.STONE);
+            helper.setBlock(GameTestTemplates.EMPTY_7X7X7_CENTER.above(y), Blocks.STONE);
         }
 
         Optional<BlockPos> found = findAboveStart(helper);
 
-        helper.assertValueEqual(found, Optional.of(helper.absolutePos(START.above(depth))), "clear space");
+        helper.assertValueEqual(
+                found,
+                Optional.of(helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER.above(depth))),
+                "clear space");
         helper.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void find_above_returns_first_open_spot_above_when_only_head_is_buried(GameTestHelper helper) {
-        helper.setBlock(START.above(), Blocks.STONE);
+        helper.setBlock(GameTestTemplates.EMPTY_7X7X7_CENTER.above(), Blocks.STONE);
 
         Optional<BlockPos> found = findAboveStart(helper);
 
-        helper.assertValueEqual(found, Optional.of(helper.absolutePos(START.above(2))), "clear space");
+        helper.assertValueEqual(
+                found, Optional.of(helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER.above(2))), "clear space");
         helper.succeed();
     }
 
@@ -49,12 +52,14 @@ public final class ClearSpaceFinderGameTests {
     public static void find_above_returns_start_when_start_is_open(GameTestHelper helper) {
         Optional<BlockPos> found = findAboveStart(helper);
 
-        helper.assertValueEqual(found, Optional.of(helper.absolutePos(START)), "clear space");
+        helper.assertValueEqual(
+                found, Optional.of(helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER)), "clear space");
         helper.succeed();
     }
 
     private static Optional<BlockPos> findAboveStart(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        return new ClearSpaceFinder(helper.getLevel(), player).findAbove(helper.absolutePos(START));
+        return new ClearSpaceFinder(helper.getLevel(), player)
+                .findAbove(helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER));
     }
 }

@@ -3,7 +3,6 @@ package com.ejafi.egmd.pearl;
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import java.util.List;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -20,7 +19,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class PearlBlockGameTests {
-    private static final BlockPos PEARL_POS = new BlockPos(3, 1, 3);
 
     private PearlBlockGameTests() {}
 
@@ -57,7 +55,7 @@ public final class PearlBlockGameTests {
         return Block.getDrops(
                         PearlBlocks.PEARL_BLOCK.get().defaultBlockState(),
                         helper.getLevel(),
-                        helper.absolutePos(PEARL_POS),
+                        helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER),
                         null,
                         null,
                         tool)

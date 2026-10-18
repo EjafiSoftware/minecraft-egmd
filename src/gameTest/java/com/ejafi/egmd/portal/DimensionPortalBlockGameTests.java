@@ -8,7 +8,6 @@ import com.ejafi.egmd.dimension.EgmdDimensionFaker;
 import com.ejafi.egmd.dimension.Restriction;
 import java.util.Objects;
 import net.datafaker.Faker;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -31,7 +30,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class DimensionPortalBlockGameTests {
     private static final Faker FAKER = new Faker();
-    private static final BlockPos SPAWN = new BlockPos(3, 1, 3);
     private static final int WATER_FLOW_TICKS = 40;
 
     private DimensionPortalBlockGameTests() {}
@@ -63,7 +61,7 @@ public final class DimensionPortalBlockGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void choose_route_travels_to_egmd_dimension_when_cow_steps_in_from_overworld(GameTestHelper helper) {
-        Cow cow = helper.spawn(EntityType.COW, SPAWN);
+        Cow cow = helper.spawn(EntityType.COW, GameTestTemplates.EMPTY_7X7X7_CENTER);
         ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered().levelKey();
 
         DimensionPortalBlock.PortalRoute route = DimensionPortalBlock.chooseRoute(cow, destination);
@@ -88,7 +86,7 @@ public final class DimensionPortalBlockGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void choose_route_refuses_zombie_when_destination_forbids_hostile_mobs(GameTestHelper helper) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, SPAWN);
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, GameTestTemplates.EMPTY_7X7X7_CENTER);
         ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered(
                         dimension -> dimension.restrictions().contains(Restriction.NO_HOSTILE_MOBS))
                 .levelKey();
@@ -101,7 +99,7 @@ public final class DimensionPortalBlockGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void choose_route_travels_with_zombie_when_destination_allows_hostile_mobs(GameTestHelper helper) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, SPAWN);
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, GameTestTemplates.EMPTY_7X7X7_CENTER);
         ResourceKey<Level> destination = EgmdDimensionFaker.pickRegistered(
                         dimension -> !dimension.restrictions().contains(Restriction.NO_HOSTILE_MOBS))
                 .levelKey();

@@ -25,14 +25,13 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class BedGuardGameTests {
     private static final Faker FAKER = new Faker();
-    private static final BlockPos BED = new BlockPos(3, 1, 3);
 
     private BedGuardGameTests() {}
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void on_right_click_block_leaves_bed_usable_when_dimension_is_overworld(GameTestHelper helper) {
-        helper.setBlock(BED, Blocks.RED_BED);
-        BlockPos bed = helper.absolutePos(BED);
+        helper.setBlock(GameTestTemplates.EMPTY_7X7X7_CENTER, Blocks.RED_BED);
+        BlockPos bed = helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER);
 
         PlayerInteractEvent.RightClickBlock event = NeoForge.EVENT_BUS.post(new PlayerInteractEvent.RightClickBlock(
                 helper.makeMockPlayer(GameType.SURVIVAL),
@@ -49,7 +48,7 @@ public final class BedGuardGameTests {
         Player player = makePlayerHoldingItem(helper);
         player.setShiftKeyDown(true);
 
-        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(BED));
+        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER));
 
         helper.assertTrue(bypassed, "sneaking player holding an item should bypass bed use");
         helper.succeed();
@@ -60,7 +59,7 @@ public final class BedGuardGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
 
-        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(BED));
+        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER));
 
         helper.assertFalse(bypassed, "sneaking player with empty hands should not bypass bed use");
         helper.succeed();
@@ -70,7 +69,7 @@ public final class BedGuardGameTests {
     public static void bypasses_block_use_returns_false_when_player_is_not_sneaking(GameTestHelper helper) {
         Player player = makePlayerHoldingItem(helper);
 
-        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(BED));
+        boolean bypassed = BedGuard.bypassesBlockUse(player, helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER));
 
         helper.assertFalse(bypassed, "player who is not sneaking should not bypass bed use");
         helper.succeed();
