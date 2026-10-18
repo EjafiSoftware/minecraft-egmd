@@ -73,7 +73,7 @@ com.ejafi.egmd/
 │   ├── Restriction.java                   # NO_HOSTILE_MOBS and NO_BEDS
 │   ├── DimensionMessages.java             # Translation keys for the login relocation and refused bed messages
 │   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs other than the Wither where NO_HOSTILE_MOBS applies
-│   ├── BedGuard.java                      # allowsUse() decision, and the RightClickBlock subscriber that keeps beds from being used where NO_BEDS applies
+│   ├── BedGuard.java                      # allowsUse() and bypassesBlockUse() decisions, and the RightClickBlock subscriber that keeps beds from being used where NO_BEDS applies
 │   ├── SlimeSpawnChecker.java             # SpawnPlacementCheck subscriber that allows surface slimes at full moon odds in egmd:allows_full_moon_slime_spawns biomes; owns that tag key
 │   ├── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks in flat terrain
 │   └── ClearSpaceFinder.java              # The first position at or above a start where an entity fits without collision
@@ -257,7 +257,7 @@ Every EGMD dimension type sets `has_raids` to false. `EgmdLevels` sets `bed_work
 
 `BedGuard` handles the main-hand `PlayerInteractEvent.RightClickBlock` on both sides. When the pure `allowsUse` decision refuses a `BedBlock` and vanilla would use the bed, it cancels the click with `InteractionResult.SUCCESS`, and the server shows `message.egmd.bed.refused` on the action bar.
 
-Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard` mirrors that check from `ServerPlayerGameMode.useItemOn` and leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
+Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard.bypassesBlockUse` mirrors that check from `ServerPlayerGameMode.useItemOn`, and the handler leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
 
 ### The Haunted dimension
 
