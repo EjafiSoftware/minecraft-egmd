@@ -43,7 +43,7 @@ public final class DimensionPortalBlockGameTests {
         helper.setBlock(ORIGIN.south(), Blocks.WATER);
 
         helper.runAfterDelay(WATER_FLOW_TICKS, () -> {
-            PortalGameTestSupport.assertInteriorHolds(helper, PortalGameTestSupport.getPortalState(Axis.X));
+            PortalGameTestSupport.assertPortalFillsInterior(helper, Axis.X);
             helper.succeed();
         });
     }

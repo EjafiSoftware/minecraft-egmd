@@ -17,7 +17,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 final class PortalPositionFinder {
-    private static final int SPIRAL_RADIUS = 16;
+    static final int SPIRAL_RADIUS = 16;
     private static final int MIN_FORCED_Y = 70;
     private static final int CEILING_MARGIN = 9;
 
@@ -35,7 +35,7 @@ final class PortalPositionFinder {
         };
     }
 
-    private static Optional<PortalSite> findOnFlatSurface(LevelReader level, PortalFootprint center) {
+    static Optional<PortalSite> findOnFlatSurface(CollisionGetter level, PortalFootprint center) {
         return searchSpiralAtFixedY(level, center)
                 .<PortalSite>map(PortalSite.Open::new)
                 .or(() -> force(level, center));

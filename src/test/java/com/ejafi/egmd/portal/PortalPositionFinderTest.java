@@ -273,6 +273,16 @@ class PortalPositionFinderTest {
         assertThat(site).isEmpty();
     }
 
+    @Test
+    void findOnFlatSurface_forcesCenter_whenNoSpiralColumnCanHostPortal() {
+        PortalFootprint center = new PortalFootprintFaker().generate();
+        fillStoneAcrossSpiral(center.origin());
+
+        Optional<PortalSite> site = PortalPositionFinder.findOnFlatSurface(level, center);
+
+        assertThat(site).contains(new PortalSite.Forced(center));
+    }
+
     private PortalFootprint generateFootprintInsideBorderAtZ(int z) {
         return new PortalFootprintFaker()
                 .withAxis(Axis.X)
@@ -299,6 +309,12 @@ class PortalPositionFinderTest {
                 }
             }
         }
+    }
+
+    private void fillStoneAcrossSpiral(BlockPos center) {
+        int radius = PortalPositionFinder.SPIRAL_RADIUS;
+        BlockPos.betweenClosed(center.offset(-radius, 0, -radius), center.offset(radius, 0, radius))
+                .forEach(pos -> level.setBlock(pos, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
     }
 
     private static DimensionType createDimensionType(int minY, int logicalHeight) {

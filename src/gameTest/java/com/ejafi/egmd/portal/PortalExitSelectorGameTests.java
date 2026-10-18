@@ -20,10 +20,10 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class PortalExitSelectorGameTests {
     private static final int EXIT_HEADROOM = 2;
-    private static final List<BlockPos> FRONT_EXIT = PortalGameTestSupport.listCellsBetween(
-            ORIGIN.south(), ORIGIN.south().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
-    private static final List<BlockPos> BACK_EXIT = PortalGameTestSupport.listCellsBetween(
-            ORIGIN.north(), ORIGIN.north().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
+    private static final List<BlockPos> FRONT_EXIT =
+            listCellsBetween(ORIGIN.south(), ORIGIN.south().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
+    private static final List<BlockPos> BACK_EXIT =
+            listCellsBetween(ORIGIN.north(), ORIGIN.north().offset(PortalFrame.MIN_WIDTH - 1, EXIT_HEADROOM - 1, 0));
 
     private PortalExitSelectorGameTests() {}
 
@@ -51,6 +51,12 @@ public final class PortalExitSelectorGameTests {
         Vec3 portalSeam = Vec3.atBottomCenterOf(helper.absolutePos(ORIGIN)).add(0.5, 0.0, 0.0);
         helper.assertValueEqual(exit, new PortalExit(portalSeam, Direction.SOUTH.toYRot()), "exit");
         helper.succeed();
+    }
+
+    private static List<BlockPos> listCellsBetween(BlockPos first, BlockPos last) {
+        return BlockPos.betweenClosedStream(first, last)
+                .map(BlockPos::immutable)
+                .toList();
     }
 
     private static void blockCells(GameTestHelper helper, List<BlockPos> cells) {

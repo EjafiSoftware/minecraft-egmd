@@ -5,23 +5,28 @@ import static com.ejafi.egmd.portal.PortalGameTestSupport.ORIGIN;
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import java.util.Map;
+import java.util.Objects;
 import net.datafaker.Faker;
+import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -31,6 +36,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class PortalIgnitionHandlerGameTests {
     private static final Faker FAKER = new Faker();
+    private static final int ELSEWHERE_ORIGIN_Y = 64;
 
     private PortalIgnitionHandlerGameTests() {}
 
@@ -152,7 +158,7 @@ public final class PortalIgnitionHandlerGameTests {
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
-        PortalGameTestSupport.assertInteriorHolds(helper, PortalGameTestSupport.getPortalState(Axis.X));
+        PortalGameTestSupport.assertPortalFillsInterior(helper, Axis.X);
         helper.succeed();
     }
 
@@ -219,6 +225,75 @@ public final class PortalIgnitionHandlerGameTests {
         clickFrame(helper, makeSurvivalPlayerHolding(helper, fireCharges));
 
         helper.assertValueEqual(fireCharges.getCount(), stackSize - 1, "fire charges left");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_fills_frame_when_click_hits_fire_standing_on_frame(GameTestHelper helper) {
+        buildFrameAroundOrigin(helper);
+        helper.setBlock(ORIGIN, Blocks.FIRE);
+        BlockPos fire = helper.absolutePos(ORIGIN);
+
+        NeoForge.EVENT_BUS.post(new PlayerInteractEvent.RightClickBlock(
+                makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL),
+                InteractionHand.MAIN_HAND,
+                fire,
+                new BlockHitResult(Vec3.atCenterOf(fire), FAKER.options().option(Direction.class), fire, false)));
+
+        PortalGameTestSupport.assertPortalFillsInterior(helper, Axis.X);
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void on_right_click_block_fills_frame_when_axis_is_z(GameTestHelper helper) {
+        createFrameBuilder(helper, PortalVariants.OVERWORLD_MINING)
+                .withCornerBlock(PortalVariants.OVERWORLD_MINING.defaultCornerBlock())
+                .build(PortalGameTestSupport.locateFrameAtOrigin(helper, Axis.Z));
+
+        clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
+
+        PortalGameTestSupport.assertPortalFillsInterior(helper, Axis.Z);
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void choose_ignition_returns_missing_corners_when_corners_are_frame_blocks(GameTestHelper helper) {
+        PortalVariant variant = pickVariant();
+        createFrameBuilder(helper, variant).build(PortalGameTestSupport.locateFrameAtOrigin(helper, Axis.X));
+
+        PortalIgnitionHandler.Ignition ignition = PortalIgnitionHandler.chooseIgnition(
+                createClick(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL)));
+
+        helper.assertValueEqual(ignition, new PortalIgnitionHandler.Ignition.MissingCorners(variant), "ignition");
+        helper.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
+    public static void choose_ignition_returns_ignored_when_frame_stands_in_unlinked_dimension(GameTestHelper helper) {
+        ServerLevel elsewhere = Objects.requireNonNull(
+                helper.getLevel().getServer().getLevel(FAKER.options().option(Level.NETHER, Level.END)));
+        PortalVariant variant = pickVariant();
+        PortalFrame frame = new PortalFrame(
+                new BlockUtil.FoundRectangle(
+                        helper.absolutePos(ORIGIN).atY(ELSEWHERE_ORIGIN_Y),
+                        PortalFrame.MIN_WIDTH,
+                        PortalFrame.MIN_HEIGHT),
+                Axis.X);
+        new PortalFrameBuilder(elsewhere, variant.frameBlock())
+                .withCornerBlock(variant.defaultCornerBlock())
+                .build(frame);
+        frame.streamInterior().forEach(pos -> elsewhere.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState()));
+        Player player = holdInMainHand(FakePlayerFactory.getMinecraft(elsewhere), new ItemStack(Items.FLINT_AND_STEEL));
+        BlockPos clickedFrame = frame.interior().minCorner.below();
+
+        PortalIgnitionHandler.Ignition ignition =
+                PortalIgnitionHandler.chooseIgnition(new PlayerInteractEvent.RightClickBlock(
+                        player,
+                        InteractionHand.MAIN_HAND,
+                        clickedFrame,
+                        new BlockHitResult(Vec3.atCenterOf(clickedFrame), Direction.UP, clickedFrame, false)));
+
+        helper.assertValueEqual(ignition, new PortalIgnitionHandler.Ignition.Ignored(), "ignition");
         helper.succeed();
     }
 
