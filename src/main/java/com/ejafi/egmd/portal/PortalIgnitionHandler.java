@@ -46,86 +46,93 @@ public final class PortalIgnitionHandler {
 
     @SubscribeEvent
     public static void onPlayerRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        switch (chooseIgnition(event)) {
+            case Ignition.Ignored ignored -> {}
+            case Ignition.MissingCorners missingCorners -> showCornerHint(event, missingCorners.variant());
+            case Ignition.Lights lights -> light(event, lights);
+        }
+    }
+
+    static Ignition chooseIgnition(PlayerInteractEvent.RightClickBlock event) {
         if (!isIgniter(event.getItemStack())) {
-            return;
+            return new Ignition.Ignored();
         }
 
         Level level = event.getLevel();
-        Optional<Ignition> found =
-                findIgnition(level, event.getHitVec()).filter(ignition -> mayIgnite(event, ignition));
+        Optional<IgnitionTarget> found =
+                findTarget(level, event.getHitVec()).filter(target -> mayIgnite(event, target));
         if (found.isEmpty()) {
-            return;
+            return new Ignition.Ignored();
         }
 
-        Ignition ignition = found.orElseThrow();
+        IgnitionTarget target = found.orElseThrow();
         DimensionPortalBlock portalBlock =
-                PortalRegisters.getPortalBlock(ignition.variant()).get();
+                PortalRegisters.getPortalBlock(target.variant()).get();
         var frames = new PortalFrameReader(level, portalBlock);
         List<PortalFrame> emptyFrames = PORTAL_AXES.stream()
-                .flatMap(axis -> frames.find(ignition.portalPos(), axis).stream())
+                .flatMap(axis -> frames.find(target.portalPos(), axis).stream())
                 .filter(frames::isEmpty)
                 .toList();
         if (emptyFrames.isEmpty()) {
-            return;
+            return new Ignition.Ignored();
         }
 
-        PortalCornerMaterials materials = PortalCornerMaterials.create(ignition.variant());
-        Optional<PortalFrame> ignitable = emptyFrames.stream()
+        PortalCornerMaterials materials = PortalCornerMaterials.create(target.variant());
+        return emptyFrames.stream()
                 .filter(frame -> materials.acceptsAll(frames.readCorners(frame)))
-                .findFirst();
-        if (ignitable.isEmpty()) {
-            showCornerHint(event, ignition.variant());
-            return;
-        }
-
-        event.setCancellationResult(InteractionResult.SUCCESS);
-        event.setCanceled(true);
-        if (level.isClientSide()) {
-            return;
-        }
-
-        portalBlock.fill(level, ignitable.orElseThrow());
-        SoundEvent sound = chargeIgniter(event);
-        level.playSound(
-                null,
-                ignition.portalPos(),
-                sound,
-                SoundSource.BLOCKS,
-                1.0F,
-                level.getRandom().nextFloat() * 0.4F + 0.8F);
-        level.gameEvent(event.getEntity(), GameEvent.BLOCK_PLACE, ignition.portalPos());
+                .findFirst()
+                .<Ignition>map(frame -> new Ignition.Lights(target.portalPos(), frame, portalBlock))
+                .orElseGet(() -> new Ignition.MissingCorners(target.variant()));
     }
 
     static boolean isIgniter(ItemStack stack) {
         return stack.is(PORTAL_IGNITERS) || stack.canPerformAction(ItemAbilities.FIRESTARTER_LIGHT);
     }
 
-    private record Ignition(BlockPos portalPos, Direction face, PortalVariant variant) {}
-
-    private static boolean mayIgnite(PlayerInteractEvent.RightClickBlock event, Ignition ignition) {
+    private static boolean mayIgnite(PlayerInteractEvent.RightClickBlock event, IgnitionTarget target) {
         Player player = event.getEntity();
         return !player.isSpectator()
                 && event.getUseItem() != TriState.FALSE
-                && player.mayUseItemAt(ignition.portalPos(), ignition.face(), event.getItemStack())
+                && player.mayUseItemAt(target.portalPos(), target.face(), event.getItemStack())
                 && DimensionPortalBlock.resolveDestination(
                                 event.getLevel().dimension(),
-                                ignition.variant().dimension().levelKey())
+                                target.variant().dimension().levelKey())
                         .isPresent();
     }
 
-    private static Optional<Ignition> findIgnition(BlockGetter level, BlockHitResult hit) {
+    private static Optional<IgnitionTarget> findTarget(BlockGetter level, BlockHitResult hit) {
         BlockPos clickedPos = hit.getBlockPos();
         BlockState clicked = level.getBlockState(clickedPos);
         if (clicked.getBlock() instanceof BaseFireBlock) {
             return findVariantForFrame(level.getBlockState(clickedPos.below()))
-                    .map(variant -> new Ignition(clickedPos, Direction.UP, variant));
+                    .map(variant -> new IgnitionTarget(clickedPos, Direction.UP, variant));
         }
 
         Direction face = hit.getDirection();
         BlockPos portalPos = clickedPos.relative(face);
         return findVariantForFrame(clicked)
                 .filter(variant -> PortalFrameReader.isOpenCell(level.getBlockState(portalPos)))
-                .map(variant -> new Ignition(portalPos, face, variant));
+                .map(variant -> new IgnitionTarget(portalPos, face, variant));
+    }
+
+    private static void light(PlayerInteractEvent.RightClickBlock event, Ignition.Lights lights) {
+        event.setCancellationResult(InteractionResult.SUCCESS);
+        event.setCanceled(true);
+        Level level = event.getLevel();
+        if (level.isClientSide()) {
+            return;
+        }
+
+        lights.portalBlock().fill(level, lights.frame());
+        SoundEvent sound = chargeIgniter(event);
+        level.playSound(
+                null,
+                lights.portalPos(),
+                sound,
+                SoundSource.BLOCKS,
+                1.0F,
+                level.getRandom().nextFloat() * 0.4F + 0.8F);
+        level.gameEvent(event.getEntity(), GameEvent.BLOCK_PLACE, lights.portalPos());
     }
 
     private static Optional<PortalVariant> findVariantForFrame(BlockState frame) {
@@ -149,5 +156,15 @@ public final class PortalIgnitionHandler {
 
         stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(event.getHand()));
         return SoundEvents.FLINTANDSTEEL_USE;
+    }
+
+    private record IgnitionTarget(BlockPos portalPos, Direction face, PortalVariant variant) {}
+
+    sealed interface Ignition {
+        record Ignored() implements Ignition {}
+
+        record MissingCorners(PortalVariant variant) implements Ignition {}
+
+        record Lights(BlockPos portalPos, PortalFrame frame, DimensionPortalBlock portalBlock) implements Ignition {}
     }
 }

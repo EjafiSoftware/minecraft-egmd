@@ -53,7 +53,7 @@ com.ejafi.egmd/
 │   ├── PortalFrameReader.java             # Finds a frame around a position through BlockGetter, validates its interior size, and reads its corners and portal blocks
 │   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for a PortalFrame
 │   ├── PortalCornerMaterials.java         # Judges corners against a Predicate<BlockState> and copies them, with a fallback block; create(variant) binds the corner tag
-│   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
+│   ├── PortalIgnitionHandler.java         # chooseIgnition() decision, and the RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
 │   ├── ArrivalTarget.java                 # Where an exit portal goes: OnFlatSurface for flat terrain, or OnTerrain elsewhere
 │   ├── ExitPortalFinder.java              # Finds an existing exit portal through the POI search, or builds one at a site PortalPositionFinder picks
 │   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site; judges canHost and canForce
@@ -183,7 +183,13 @@ Each variant also names its corner tag, `egmd:<id>_corners`, its corner hint key
 
 `PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame.
 
-The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
+The handler asks the `chooseIgnition` decision for an `Ignition`. The decision refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and picks the first whose four corners are all in the variant's corner tag.
+
+| Situation | `Ignition` | Effect |
+|---|---|---|
+| Not an igniter, no frame at the click, a refused click, or no empty frame | `Ignored` | Nothing |
+| Empty frames, none with valid corners | `MissingCorners` | The corner hint described below |
+| An empty frame with valid corners | `Lights` | The frame fills with portal blocks |
 
 The corners are the cells diagonal to the interior rectangle, which `PortalFrameReader.readCorners` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `PortalFrameReader.find`, `PortalFrameReader.isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
 
