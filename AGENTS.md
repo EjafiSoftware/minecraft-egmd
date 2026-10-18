@@ -74,7 +74,8 @@ com.ejafi.egmd/
 │   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs other than the Wither where NO_HOSTILE_MOBS applies
 │   ├── BedGuard.java                      # allowsUse() decision, and the RightClickBlock subscriber that keeps beds from being used where NO_BEDS applies
 │   ├── SlimeSpawnChecker.java             # SpawnPlacementCheck subscriber that allows surface slimes at full moon odds in egmd:allows_full_moon_slime_spawns biomes; owns that tag key
-│   └── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks in flat terrain
+│   ├── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks in flat terrain
+│   └── ClearSpaceFinder.java              # The first position at or above a start where an entity fits without collision
 └── pearl/
     └── PearlBlocks.java                   # pearl_block block and item registers; adds the item to the Natural Blocks tab
 ```
@@ -134,9 +135,9 @@ src/gameTest/java/com/ejafi/egmd/
 ├── GameTestTemplates.java                 # Template name constants (EMPTY_7X7X7)
 ├── dimension/
 │   ├── BedGuardGameTests.java
+│   ├── ClearSpaceFinderGameTests.java
 │   ├── EgmdBiomesGameTests.java
-│   ├── HostileMobGuardGameTests.java
-│   └── PlayerRelocatorGameTests.java
+│   └── HostileMobGuardGameTests.java
 ├── pearl/
 │   └── PearlBlockGameTests.java
 └── portal/
