@@ -39,19 +39,24 @@ public final class SlimeSpawnChecker {
         }
 
         RandomSource random = event.getRandom();
-        if (SurfaceRoll.roll(random).admits(pos.getY(), level.getMaxLocalRawBrightness(pos))
+        if (isInSurfaceBand(pos.getY())
+                && passesRoll(SurfaceRoll.roll(random), level.getMaxLocalRawBrightness(pos))
                 && Mob.checkMobSpawnRules(EntityType.SLIME, level, event.getSpawnType(), pos, random)) {
             event.setResult(MobSpawnEvent.SpawnPlacementCheck.Result.SUCCEED);
         }
     }
 
+    static boolean isInSurfaceBand(int y) {
+        return y >= SURFACE_MIN_Y && y <= SURFACE_MAX_Y;
+    }
+
+    static boolean passesRoll(SurfaceRoll roll, int light) {
+        return roll.chance() < SPAWN_CHANCE && light <= roll.darkness();
+    }
+
     record SurfaceRoll(float chance, int darkness) {
         static SurfaceRoll roll(RandomSource random) {
             return new SurfaceRoll(random.nextFloat(), random.nextInt(DARKNESS_BOUND));
-        }
-
-        boolean admits(int y, int light) {
-            return y >= SURFACE_MIN_Y && y <= SURFACE_MAX_Y && chance < SPAWN_CHANCE && light <= darkness;
         }
     }
 }
