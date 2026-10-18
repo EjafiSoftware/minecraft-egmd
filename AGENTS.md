@@ -33,7 +33,7 @@ The dev runs need JDK 21. `gradle/gradle-daemon-jvm.properties` pins the Gradle 
 
 ### Releases
 
-Pushing a tag that equals `mod_version`, such as `2.2.0`, on a commit in `main` runs the gate, then publishes a GitHub release titled with the version. The release carries `egmd-<version>.jar` and the `## [<version>]` section of `CHANGELOG.md`. A second job then uploads the same jar and notes to the CurseForge project `curseforge_project_id` names in `gradle.properties`, using the `CURSE_API_TOKEN` organization secret. The release job fails without publishing when the tag doesn't match `mod_version`, the commit isn't in `main`, or the changelog has no section for the version.
+Pushing a tag that equals `mod_version`, such as `2.2.0`, on a commit in `main` runs the gate, then publishes a GitHub release titled with the version. The release carries `egmd-<version>.jar` and the `## [<version>]` section of `CHANGELOG.md`. A second job then uploads the same jar and notes to the CurseForge project the `CURSE_PROJECT_ID` repository variable names, using the `CURSE_API_TOKEN` organization secret. The release job fails without publishing when the tag doesn't match `mod_version`, the commit isn't in `main`, or the changelog has no section for the version.
 
 ## Source layout
 
