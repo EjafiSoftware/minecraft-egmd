@@ -8,14 +8,22 @@ on:
 
 jobs:
   gate:
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.1.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.2.0
+    permissions:
+      contents: write
+      packages: read
+
+  codeql:
+    if: github.ref_type != 'tag'
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-codeql.yml@v1.2.0
     permissions:
       contents: read
       packages: read
+      security-events: write
 
   release:
     if: github.ref_type == 'tag'
     needs: gate
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.1.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.2.0
     permissions:
       contents: write
