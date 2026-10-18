@@ -14,14 +14,14 @@ concurrency:
 
 jobs:
   gate:
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.4.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-gate.yml@v1.5.0
     permissions:
-      contents: write
+      contents: read
       packages: read
 
   codeql:
     if: github.ref == 'refs/heads/main'
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-codeql.yml@v1.4.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-codeql.yml@v1.5.0
     permissions:
       contents: read
       packages: read
@@ -30,7 +30,7 @@ jobs:
   release:
     if: github.ref_type == 'tag'
     needs: gate
-    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.4.0
+    uses: EjafiSoftware/minecraft-build/.github/workflows/mod-release.yml@v1.5.0
     permissions:
       contents: write
     with:

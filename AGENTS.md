@@ -23,7 +23,7 @@ This file guides coding agents working in this repository.
 | `./gradlew spotlessApply` | Formats every Java source set |
 | `./gradlew runClient`, `./gradlew runServer` | Dev runs. Both load the `gameTest` source set and enable the `egmd` GameTest namespace, so `/test` works in them. |
 
-**The gate** is `./gradlew runData` with `git status --porcelain` printing nothing, then `./gradlew build`, then `./gradlew runGameTestServer`, and all of them must pass before work is done. CI (`.github/workflows/build.yml`) runs the same steps through the shared `mod-gate.yml` workflow, which also reviews dependency changes on pull requests. CI also runs CodeQL through `mod-codeql.yml` on pushes to `main`, and skips changes that touch only markdown. Dependabot (`.github/dependabot.yml`) opens monthly grouped updates for Gradle and GitHub Actions.
+**The gate** is `./gradlew runData` with `git status --porcelain` printing nothing, then `./gradlew build`, then `./gradlew runGameTestServer`, and all of them must pass before work is done. CI (`.github/workflows/build.yml`) runs the same steps through the shared `mod-gate.yml` workflow. CI also runs CodeQL through `mod-codeql.yml` on pushes to `main`, and skips changes that touch only markdown. Dependabot (`.github/dependabot.yml`) opens monthly grouped updates for Gradle and GitHub Actions.
 
 ### Build configuration
 
