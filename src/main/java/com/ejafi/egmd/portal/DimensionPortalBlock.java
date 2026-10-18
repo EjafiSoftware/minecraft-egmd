@@ -175,7 +175,7 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
                     "No safe place to build a portal near {} in dimension {}",
                     target.footprint().origin(),
                     destLevel.dimension().location());
-            notifyPlayer(entity, PortalMessages.NO_SAFE_LOCATION);
+            notifyNoSafeLocation(entity);
             return null;
         }
 
@@ -229,9 +229,9 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
                 .orElseGet(() -> new ArrivalTarget.OnTerrain(scaled));
     }
 
-    private static void notifyPlayer(Entity entity, String translationKey) {
+    private static void notifyNoSafeLocation(Entity entity) {
         if (entity instanceof ServerPlayer player) {
-            player.displayClientMessage(Component.translatable(translationKey), true);
+            player.displayClientMessage(Component.translatable(PortalMessages.NO_SAFE_LOCATION), true);
         }
     }
 

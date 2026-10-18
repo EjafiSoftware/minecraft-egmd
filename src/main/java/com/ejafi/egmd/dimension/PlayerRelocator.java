@@ -34,7 +34,7 @@ public final class PlayerRelocator {
             case LoginRescue.LiftToClearSpace(BlockPos clearSpace) -> {
                 Vec3 target = Vec3.atBottomCenterOf(clearSpace);
                 player.teleportTo(target.x, target.y, target.z);
-                sendMessage(player, DimensionMessages.LOGIN_RELOCATED);
+                notifyRelocated(player);
             }
             case LoginRescue.SendToOverworld sendToOverworld -> sendToOverworld(player);
         }
@@ -74,12 +74,12 @@ public final class PlayerRelocator {
         player.setPortalCooldown();
         player.teleportTo(overworld, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         if (player.level().equals(overworld)) {
-            sendMessage(player, DimensionMessages.LOGIN_RELOCATED);
+            notifyRelocated(player);
         }
     }
 
-    private static void sendMessage(ServerPlayer player, String messageKey) {
-        player.sendSystemMessage(Component.translatable(messageKey));
+    private static void notifyRelocated(ServerPlayer player) {
+        player.sendSystemMessage(Component.translatable(DimensionMessages.LOGIN_RELOCATED));
     }
 
     static Optional<BlockPos> findClearSpace(CollisionGetter level, Entity entity, BlockPos start) {
