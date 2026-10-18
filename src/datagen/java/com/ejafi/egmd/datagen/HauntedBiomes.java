@@ -1,13 +1,11 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.dimension.EgmdBiomes;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.AmbientMoodSettings;
@@ -19,15 +17,12 @@ import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 
 final class HauntedBiomes {
-    static final ResourceKey<Biome> HAUNTED_WOODS =
-            ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(EGMD.MOD_ID, "haunted_woods"));
-
     private static final float ASH_DENSITY = 0.00625F;
 
     private HauntedBiomes() {}
 
     static void bootstrap(BootstrapContext<Biome> context) {
-        context.register(HAUNTED_WOODS, createHauntedWoods(context));
+        context.register(EgmdBiomes.HAUNTED_WOODS, createHauntedWoods(context));
     }
 
     private static Biome createHauntedWoods(BootstrapContext<Biome> context) {

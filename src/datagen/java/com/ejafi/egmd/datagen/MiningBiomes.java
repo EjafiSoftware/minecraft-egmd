@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.dimension.EgmdBiomes;
 import java.util.List;
 import java.util.stream.Stream;
 import net.minecraft.core.registries.Registries;
@@ -8,7 +8,6 @@ import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.CavePlacements;
 import net.minecraft.data.worldgen.placement.OrePlacements;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.AmbientMoodSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
@@ -18,10 +17,6 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 final class MiningBiomes {
-    static final ResourceKey<Biome> MINING_PLAINS = createKey("mining_plains");
-    static final ResourceKey<Biome> NETHER_MINING_WASTES = createKey("nether_mining_wastes");
-    static final ResourceKey<Biome> END_MINING_WASTES = createKey("end_mining_wastes");
-
     private static final int WATER_COLOR = 0x3F76FF;
     private static final int WATER_FOG_COLOR = 0x050533;
     private static final List<ResourceKey<PlacedFeature>> VANILLA_OVERWORLD_ORES = List.of(
@@ -43,9 +38,9 @@ final class MiningBiomes {
     private MiningBiomes() {}
 
     static void bootstrap(BootstrapContext<Biome> context) {
-        context.register(MINING_PLAINS, createMiningPlains(context));
-        context.register(NETHER_MINING_WASTES, createNetherMiningWastes(context));
-        context.register(END_MINING_WASTES, createEndMiningWastes(context));
+        context.register(EgmdBiomes.MINING_PLAINS, createMiningPlains(context));
+        context.register(EgmdBiomes.NETHER_MINING_WASTES, createNetherMiningWastes(context));
+        context.register(EgmdBiomes.END_MINING_WASTES, createEndMiningWastes(context));
     }
 
     private static Biome createMiningPlains(BootstrapContext<Biome> context) {
@@ -112,9 +107,5 @@ final class MiningBiomes {
             List<MiningOre> modOres, List<ResourceKey<PlacedFeature>> vanillaOres) {
         return Stream.concat(modOres.stream().map(MiningOre::toPlacedKey), vanillaOres.stream())
                 .toList();
-    }
-
-    private static ResourceKey<Biome> createKey(String path) {
-        return ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(EGMD.MOD_ID, path));
     }
 }

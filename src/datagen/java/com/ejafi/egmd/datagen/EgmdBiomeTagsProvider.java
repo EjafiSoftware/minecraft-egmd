@@ -1,6 +1,7 @@
 package com.ejafi.egmd.datagen;
 
 import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.dimension.SlimeSpawnChecker;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -16,6 +17,6 @@ final class EgmdBiomeTagsProvider extends BiomeTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        tag(SlimeSpawnChecker.ALLOWS_FULL_MOON_SLIME_SPAWNS).add(HauntedBiomes.HAUNTED_WOODS);
+        tag(SlimeSpawnChecker.ALLOWS_FULL_MOON_SLIME_SPAWNS).add(EgmdBiomes.HAUNTED_WOODS);
     }
 }

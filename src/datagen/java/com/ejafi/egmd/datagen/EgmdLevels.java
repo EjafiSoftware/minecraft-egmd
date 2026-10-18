@@ -1,5 +1,6 @@
 package com.ejafi.egmd.datagen;
 
+import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.dimension.EgmdDimension;
 import com.ejafi.egmd.dimension.EgmdDimensions;
 import com.ejafi.egmd.dimension.Restriction;
@@ -29,14 +30,12 @@ import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 final class EgmdLevels {
     private static final List<LevelDefinition> ALL = List.of(
             new LevelDefinition(
-                    EgmdDimensions.OVERWORLD_MINING, MiningBiomes.MINING_PLAINS, EgmdLevels::createOverworldMiningType),
+                    EgmdDimensions.OVERWORLD_MINING, EgmdBiomes.MINING_PLAINS, EgmdLevels::createOverworldMiningType),
             new LevelDefinition(
-                    EgmdDimensions.NETHER_MINING,
-                    MiningBiomes.NETHER_MINING_WASTES,
-                    EgmdLevels::createNetherMiningType),
+                    EgmdDimensions.NETHER_MINING, EgmdBiomes.NETHER_MINING_WASTES, EgmdLevels::createNetherMiningType),
             new LevelDefinition(
-                    EgmdDimensions.END_MINING, MiningBiomes.END_MINING_WASTES, EgmdLevels::createEndMiningType),
-            new LevelDefinition(EgmdDimensions.HAUNTED, HauntedBiomes.HAUNTED_WOODS, EgmdLevels::createHauntedType));
+                    EgmdDimensions.END_MINING, EgmdBiomes.END_MINING_WASTES, EgmdLevels::createEndMiningType),
+            new LevelDefinition(EgmdDimensions.HAUNTED, EgmdBiomes.HAUNTED_WOODS, EgmdLevels::createHauntedType));
 
     private EgmdLevels() {}
 

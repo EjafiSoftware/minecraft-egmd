@@ -1,8 +1,7 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.dimension;
 
 import com.ejafi.egmd.EGMD;
 import com.ejafi.egmd.GameTestTemplates;
-import com.ejafi.egmd.dimension.SlimeSpawnChecker;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -14,8 +13,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(EGMD.MOD_ID)
 @PrefixGameTestTemplate(false)
-public final class HauntedBiomesGameTests {
-    private HauntedBiomesGameTests() {}
+public final class EgmdBiomesGameTests {
+    private EgmdBiomesGameTests() {}
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void haunted_woods_allows_full_moon_slime_spawns_by_default(GameTestHelper helper) {
@@ -37,6 +36,6 @@ public final class HauntedBiomesGameTests {
         return helper.getLevel()
                 .registryAccess()
                 .registryOrThrow(Registries.BIOME)
-                .getHolderOrThrow(HauntedBiomes.HAUNTED_WOODS);
+                .getHolderOrThrow(EgmdBiomes.HAUNTED_WOODS);
     }
 }
