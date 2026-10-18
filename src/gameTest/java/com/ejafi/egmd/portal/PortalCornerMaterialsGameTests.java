@@ -2,7 +2,6 @@ package com.ejafi.egmd.portal;
 
 import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
-import java.util.Collections;
 import java.util.List;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -16,26 +15,26 @@ public final class PortalCornerMaterialsGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void create_rejects_corners_when_they_are_the_frame_block_of_any_variant(GameTestHelper helper) {
-        List<Boolean> accepted = PortalVariants.ALL.stream()
-                .map(variant -> PortalCornerMaterials.create(variant)
+        List<PortalVariant> accepting = PortalVariants.ALL.stream()
+                .filter(variant -> PortalCornerMaterials.create(variant)
                         .acceptsAll(PortalCornersFaker.fillCorners(
                                 variant.frameBlock().defaultBlockState())))
                 .toList();
 
-        helper.assertValueEqual(accepted, Collections.nCopies(PortalVariants.ALL.size(), false), "accepted");
+        helper.assertValueEqual(accepting, List.of(), "variants accepting their frame block");
         helper.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void create_accepts_corners_when_they_are_the_default_corner_block_of_any_variant(
             GameTestHelper helper) {
-        List<Boolean> accepted = PortalVariants.ALL.stream()
-                .map(variant -> PortalCornerMaterials.create(variant)
+        List<PortalVariant> accepting = PortalVariants.ALL.stream()
+                .filter(variant -> PortalCornerMaterials.create(variant)
                         .acceptsAll(PortalCornersFaker.fillCorners(
                                 variant.defaultCornerBlock().defaultBlockState())))
                 .toList();
 
-        helper.assertValueEqual(accepted, Collections.nCopies(PortalVariants.ALL.size(), true), "accepted");
+        helper.assertValueEqual(accepting, PortalVariants.ALL, "variants accepting their default corner");
         helper.succeed();
     }
 }
