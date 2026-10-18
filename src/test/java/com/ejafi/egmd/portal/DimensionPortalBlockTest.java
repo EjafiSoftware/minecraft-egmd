@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.ejafi.egmd.dimension.EgmdDimension;
 import com.ejafi.egmd.dimension.EgmdDimensionFaker;
 import com.ejafi.egmd.dimension.Terrain;
+import java.util.Optional;
 import net.datafaker.Faker;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -20,36 +21,36 @@ class DimensionPortalBlockTest {
 
     @Test
     void resolveDestination_leadsToEgmdDimension_whenTravelingFromOverworld() {
-        ResourceKey<Level> destination =
+        Optional<ResourceKey<Level>> destination =
                 DimensionPortalBlock.resolveDestination(Level.OVERWORLD, portalDimension.levelKey());
 
-        assertThat(destination).isEqualTo(portalDimension.levelKey());
+        assertThat(destination).contains(portalDimension.levelKey());
     }
 
     @Test
     void resolveDestination_leadsToOverworld_whenTravelingFromPortalsOwnDimension() {
-        ResourceKey<Level> destination =
+        Optional<ResourceKey<Level>> destination =
                 DimensionPortalBlock.resolveDestination(portalDimension.levelKey(), portalDimension.levelKey());
 
-        assertThat(destination).isEqualTo(Level.OVERWORLD);
+        assertThat(destination).contains(Level.OVERWORLD);
     }
 
     @Test
     void resolveDestination_leadsNowhere_whenPortalStandsInVanillaDimensionOtherThanOverworld() {
-        ResourceKey<Level> destination = DimensionPortalBlock.resolveDestination(
+        Optional<ResourceKey<Level>> destination = DimensionPortalBlock.resolveDestination(
                 FAKER.options().option(Level.NETHER, Level.END), portalDimension.levelKey());
 
-        assertThat(destination).isNull();
+        assertThat(destination).isEmpty();
     }
 
     @Test
     void resolveDestination_leadsNowhere_whenPortalStandsInAnotherEgmdDimension() {
         EgmdDimension other = new EgmdDimensionFaker().generate();
 
-        ResourceKey<Level> destination =
+        Optional<ResourceKey<Level>> destination =
                 DimensionPortalBlock.resolveDestination(other.levelKey(), portalDimension.levelKey());
 
-        assertThat(destination).isNull();
+        assertThat(destination).isEmpty();
     }
 
     @Test

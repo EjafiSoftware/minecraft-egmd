@@ -195,11 +195,12 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
     }
 
     static PortalRoute chooseRoute(Entity traveler, ResourceKey<Level> portalDimension) {
-        ResourceKey<Level> destination = resolveDestination(traveler.level().dimension(), portalDimension);
-        if (destination == null) {
+        Optional<ResourceKey<Level>> found = resolveDestination(traveler.level().dimension(), portalDimension);
+        if (found.isEmpty()) {
             return new PortalRoute.Unlinked();
         }
 
+        ResourceKey<Level> destination = found.orElseThrow();
         if (!HostileMobGuard.admits(traveler, EgmdDimensions.getRestrictions(destination))) {
             return new PortalRoute.Refused();
         }
@@ -207,15 +208,15 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
         return new PortalRoute.Travel(destination);
     }
 
-    static @Nullable ResourceKey<Level> resolveDestination(
+    static Optional<ResourceKey<Level>> resolveDestination(
             ResourceKey<Level> current, ResourceKey<Level> portalDimension) {
         if (current.equals(Level.OVERWORLD)) {
-            return portalDimension;
+            return Optional.of(portalDimension);
         }
         if (current.equals(portalDimension)) {
-            return Level.OVERWORLD;
+            return Optional.of(Level.OVERWORLD);
         }
-        return null;
+        return Optional.empty();
     }
 
     static ArrivalTarget computeArrivalTarget(PortalFootprint scaled, ResourceKey<Level> destination) {

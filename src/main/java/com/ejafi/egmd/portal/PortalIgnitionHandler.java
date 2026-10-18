@@ -104,7 +104,7 @@ public final class PortalIgnitionHandler {
                 && DimensionPortalBlock.resolveDestination(
                                 event.getLevel().dimension(),
                                 ignition.variant().dimension().levelKey())
-                        != null;
+                        .isPresent();
     }
 
     private static Optional<Ignition> findIgnition(BlockGetter level, BlockHitResult hit) {
