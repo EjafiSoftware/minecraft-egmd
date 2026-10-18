@@ -24,7 +24,7 @@ class PortalExitTest {
     @CsvSource({"X, 1.0, 1.5, 0", "Z, -0.5, 1.0, 90"})
     void computeFront_centersSpawnOnBlockInFrontOfPortal_whenPortalHasMinimumWidth(
             Axis axis, double offsetX, double offsetZ, float yRot) {
-        PortalExit exit = PortalExit.computeFront(narrowestPortal, axis);
+        PortalExit exit = PortalExit.computeFront(new PortalFrame(narrowestPortal, axis));
 
         assertThat(exit).isEqualTo(new PortalExit(resolveFromMinCorner(offsetX, offsetZ), yRot));
     }
@@ -33,7 +33,7 @@ class PortalExitTest {
     @CsvSource({"X, 1.0, -0.5, 180", "Z, 1.5, 1.0, 270"})
     void computeBack_centersSpawnOnBlockBehindPortal_whenPortalHasMinimumWidth(
             Axis axis, double offsetX, double offsetZ, float yRot) {
-        PortalExit exit = PortalExit.computeBack(narrowestPortal, axis);
+        PortalExit exit = PortalExit.computeBack(new PortalFrame(narrowestPortal, axis));
 
         assertThat(exit).isEqualTo(new PortalExit(resolveFromMinCorner(offsetX, offsetZ), yRot));
     }
@@ -42,7 +42,7 @@ class PortalExitTest {
     @CsvSource({"X, 1.0, 0.5, 0", "Z, 0.5, 1.0, 90"})
     void computeInside_centersSpawnOnPortalBottomRow_whenPortalHasMinimumWidth(
             Axis axis, double offsetX, double offsetZ, float yRot) {
-        PortalExit exit = PortalExit.computeInside(narrowestPortal, axis);
+        PortalExit exit = PortalExit.computeInside(new PortalFrame(narrowestPortal, axis));
 
         assertThat(exit).isEqualTo(new PortalExit(resolveFromMinCorner(offsetX, offsetZ), yRot));
     }
@@ -51,7 +51,8 @@ class PortalExitTest {
     void computeFront_centersSpawnOnPortalWidth_whenPortalIsWiderThanMinimum() {
         int width = FAKER.number().numberBetween(PortalFrame.MIN_WIDTH + 1, PortalFrame.MAX_WIDTH + 1);
 
-        PortalExit exit = PortalExit.computeFront(new BlockUtil.FoundRectangle(minCorner, width, height), Axis.X);
+        PortalExit exit = PortalExit.computeFront(
+                new PortalFrame(new BlockUtil.FoundRectangle(minCorner, width, height), Axis.X));
 
         assertThat(exit).isEqualTo(new PortalExit(resolveFromMinCorner(width / 2.0, 1.5), 0.0F));
     }

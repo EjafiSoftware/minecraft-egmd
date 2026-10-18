@@ -1,6 +1,6 @@
 package com.ejafi.egmd.dimension;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -15,7 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-@EventBusSubscriber(modid = EGMD.MOD_ID)
+@EventBusSubscriber(modid = Egmd.MOD_ID)
 public final class BedGuard {
     private BedGuard() {}
 
@@ -28,7 +28,7 @@ public final class BedGuard {
         Level level = event.getLevel();
         if (event.getHand() != InteractionHand.MAIN_HAND
                 || allowsUse(level.getBlockState(event.getPos()), EgmdDimensions.getRestrictions(level.dimension()))
-                || bypassesBlockUse(event)) {
+                || bypassesBlockUse(event.getEntity(), event.getPos())) {
             return;
         }
 
@@ -39,12 +39,10 @@ public final class BedGuard {
         }
     }
 
-    private static boolean bypassesBlockUse(PlayerInteractEvent.RightClickBlock event) {
-        Player player = event.getEntity();
+    static boolean bypassesBlockUse(Player player, BlockPos pos) {
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
-        Level level = event.getLevel();
-        BlockPos pos = event.getPos();
+        Level level = player.level();
         return player.isSecondaryUseActive()
                 && !(mainHand.isEmpty() && offHand.isEmpty())
                 && !(mainHand.doesSneakBypassUse(level, pos, player) && offHand.doesSneakBypassUse(level, pos, player));

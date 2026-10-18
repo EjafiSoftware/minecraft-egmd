@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.worldgen;
 
 import com.ejafi.egmd.pearl.PearlBlocks;
 import java.util.List;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RandomBlockMa
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
-final class MiningOres {
+public final class MiningOres {
     private static final RuleTest STONE = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
     private static final RuleTest DEEPSLATE = new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES);
     private static final RuleTest NETHER_STONE = new TagMatchTest(BlockTags.BASE_STONE_NETHER);
@@ -121,13 +121,13 @@ final class MiningOres {
 
     private MiningOres() {}
 
-    static void bootstrapConfiguredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrapConfiguredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         for (MiningOre ore : ALL) {
             context.register(ore.toConfiguredKey(), new ConfiguredFeature<>(Feature.ORE, ore.configuration()));
         }
     }
 
-    static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
+    public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
         HolderGetter<ConfiguredFeature<?, ?>> configuredFeatures = context.lookup(Registries.CONFIGURED_FEATURE);
         for (MiningOre ore : ALL) {
             context.register(

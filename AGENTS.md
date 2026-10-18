@@ -41,25 +41,26 @@ Pushing a tag that equals `mod_version`, such as `2.2.0`, on a commit in `main` 
 
 ```
 com.ejafi.egmd/
-├── EGMD.java                              # @Mod entry point: calls each feature's register(IEventBus) and registers PortalConfig.SPEC as the COMMON config
+├── Egmd.java                              # @Mod entry point: calls each feature's register(IEventBus) and registers PortalConfig.SPEC as the COMMON config
 ├── portal/
 │   ├── PortalRegisters.java               # Block, POI type, and portal_spark particle registers; getPortalBlock(variant)
 │   ├── PortalConfig.java                  # ModConfigSpec with portalSearchRadius (16 to 512, default 128); its description feeds the config comment and the screen tooltip
 │   ├── PortalMessages.java                # Translation key for the no-safe-location message
 │   ├── PortalVariant.java                 # Record of one portal: registry ID, EgmdDimension, frame block, default corner block, map color, tint color; derives the corner tag and corner hint key from the ID
 │   ├── PortalVariants.java                # The OVERWORLD_MINING, NETHER_MINING, END_MINING, and HAUNTED variants
-│   ├── DimensionPortalBlock.java          # The portal block: chooseRoute() and travel, pane shape, ambient sound and tinted sparks, collapse, fluid refusal
-│   ├── PortalFrame.java                   # Reads a frame and its corners through BlockGetter, validates its interior size, and fills it with portal blocks
-│   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for an interior rectangle
+│   ├── DimensionPortalBlock.java          # The portal block: chooseRoute() and travel, fill() for a frame interior, pane shape, ambient sound and tinted sparks, collapse, fluid refusal
+│   ├── PortalFrame.java                   # Record of a frame: its interior rectangle, measured east along X or south along Z from the lowest corner, and its axis
+│   ├── PortalFrameReader.java             # Finds a frame around a position through BlockGetter, validates its interior size, and reads its corners and portal blocks
+│   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for a PortalFrame
 │   ├── PortalCornerMaterials.java         # Judges corners against a Predicate<BlockState> and copies them, with a fallback block; create(variant) binds the corner tag
-│   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
+│   ├── PortalIgnitionHandler.java         # chooseIgnition() decision, and the RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
 │   ├── ArrivalTarget.java                 # Where an exit portal goes: OnFlatSurface for flat terrain, or OnTerrain elsewhere
 │   ├── ExitPortalFinder.java              # Finds an existing exit portal through the POI search, or builds one at a site PortalPositionFinder picks
-│   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site
+│   ├── PortalPositionFinder.java          # Chooses a PortalSite for an ArrivalTarget: spiral search for an open site, else a forced site; judges canHost and canForce
 │   ├── PortalSite.java                    # An Open site, or a Forced site whose exit cells must be cleared
-│   ├── PortalFootprint.java               # The frame, corner, portal, exit, and platform cells of a generated portal; judges canHost and canForce
+│   ├── PortalFootprint.java               # The plane, frame, corner, exit, and platform cells of a generated portal, and its PortalFrame
 │   ├── PortalStructureBuilder.java        # Writes a portal, its frame with the given corner blocks, and its platform to a LevelWriter; clears the exit of a forced site
-│   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a portal rectangle
+│   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a PortalFrame
 │   ├── PortalExitSelector.java            # Picks the first safe arrival for an entity: front, then back, else inside
 │   └── client/
 │       ├── PortalClient.java              # @Mod(dist = CLIENT): config screen, portal block tints, portal_spark particle provider
@@ -72,9 +73,10 @@ com.ejafi.egmd/
 │   ├── Restriction.java                   # NO_HOSTILE_MOBS and NO_BEDS
 │   ├── DimensionMessages.java             # Translation keys for the login relocation and refused bed messages
 │   ├── HostileMobGuard.java               # admits() decision, and the EntityJoinLevelEvent subscriber that cancels hostile mobs other than the Wither where NO_HOSTILE_MOBS applies
-│   ├── BedGuard.java                      # allowsUse() decision, and the RightClickBlock subscriber that keeps beds from being used where NO_BEDS applies
+│   ├── BedGuard.java                      # allowsUse() and bypassesBlockUse() decisions, and the RightClickBlock subscriber that keeps beds from being used where NO_BEDS applies
 │   ├── SlimeSpawnChecker.java             # SpawnPlacementCheck subscriber that allows surface slimes at full moon odds in egmd:allows_full_moon_slime_spawns biomes; owns that tag key
-│   └── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks in flat terrain
+│   ├── PlayerRelocator.java               # PlayerLoggedInEvent subscriber that chooses a LoginRescue and moves a player who logs in inside blocks in flat terrain
+│   └── ClearSpaceFinder.java              # The first position at or above a start where an entity fits without collision
 └── pearl/
     └── PearlBlocks.java                   # pearl_block block and item registers; adds the item to the Natural Blocks tab
 ```
@@ -84,20 +86,29 @@ com.ejafi.egmd/
 ```
 com.ejafi.egmd.datagen/
 ├── DataGatherer.java                      # GatherDataEvent subscriber that registers every provider and the datapack registry set
-├── EgmdBlockStateProvider.java            # Portal and pearl_block block states, block models, and the pearl_block item model
-├── EgmdLanguageProvider.java              # en_us translations
-├── EgmdBlockTagsProvider.java             # minecraft:mineable/pickaxe and the egmd:*_corners tags
-├── EgmdItemTagsProvider.java              # egmd:portal_igniters
-├── EgmdBiomeTagsProvider.java             # egmd:allows_full_moon_slime_spawns
-├── EgmdBlockLootProvider.java             # pearl_block loot table: itself with Silk Touch, else 1 to 4 Ender Pearls with a Fortune uniform bonus and explosion decay
-├── EgmdParticleDescriptionProvider.java   # portal_spark sprites (vanilla generic_0 to generic_7)
-├── EgmdLevels.java                        # One dimension type and level stem per EgmdDimension; the generator comes from its Terrain
-├── MiningOre.java                         # One ore: name, OreConfiguration, vein count per chunk, height range
-├── MiningOres.java                        # Every mining ore, listed once per dimension; bootstraps their configured and placed features
-├── MiningBiomes.java                      # The three mining biome definitions; each places its dimension's mod ores, then vanilla ones
-├── HauntedFeatures.java                   # Pumpkin, carved pumpkin, Jack o'Lantern, and cobweb patches, and soul sand disks
-└── HauntedBiomes.java                     # Haunted Woods: its spawns, effects, and generation
+├── model/
+│   └── EgmdBlockStateProvider.java        # Portal and pearl_block block states, block models, and the pearl_block item model
+├── particle/
+│   └── EgmdParticleDescriptionProvider.java # portal_spark sprites (vanilla generic_0 to generic_7)
+├── lang/
+│   └── EgmdLanguageProvider.java          # en_us translations
+├── tag/
+│   ├── EgmdBlockTagsProvider.java         # minecraft:mineable/pickaxe and the egmd:*_corners tags
+│   ├── EgmdItemTagsProvider.java          # egmd:portal_igniters
+│   └── EgmdBiomeTagsProvider.java         # egmd:allows_full_moon_slime_spawns
+├── loot/
+│   └── EgmdBlockLootProvider.java         # pearl_block loot table: itself with Silk Touch, else 1 to 4 Ender Pearls with a Fortune uniform bonus and explosion decay
+├── worldgen/
+│   ├── MiningOre.java                     # One ore: name, OreConfiguration, vein count per chunk, height range
+│   ├── MiningOres.java                    # Every mining ore, listed once per dimension; bootstraps their configured and placed features
+│   ├── MiningBiomes.java                  # The three mining biome definitions; each places its dimension's mod ores, then vanilla ones
+│   ├── HauntedFeatures.java               # Pumpkin, carved pumpkin, Jack o'Lantern, and cobweb patches, and soul sand disks
+│   └── HauntedBiomes.java                 # Haunted Woods: its spawns, effects, and generation
+└── dimension/
+    └── EgmdLevels.java                    # One dimension type and level stem per EgmdDimension; the generator comes from its Terrain, and the Overworld-like types share one factory
 ```
+
+Datagen packages are named for the data kind each provider produces, and `DataGatherer` at the root is the only class that reaches across them.
 
 ### Test source sets
 
@@ -112,8 +123,7 @@ src/testFixtures/java/com/ejafi/egmd/
     ├── FakeLevel.java                     # Map-backed CollisionGetter and LevelWriter for unit tests
     ├── PortalCornersFaker.java            # Four distinct non-frame corner states; fillCorners() for one state at every corner
     ├── PortalFootprintFaker.java          # Random PortalFootprint at a Y where a portal fits
-    ├── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior, with corners that default to the frame block
-    └── RegisteredPortalBlocks.java        # The registered Overworld Mining portal block
+    └── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior, with corners that default to the frame block
 
 src/test/java/com/ejafi/egmd/
 ├── dimension/
@@ -126,22 +136,29 @@ src/test/java/com/ejafi/egmd/
     ├── PortalCornerMaterialsTest.java
     ├── PortalExitTest.java
     ├── PortalFootprintTest.java
-    ├── PortalFrameTest.java
+    ├── PortalFrameReaderTest.java
     ├── PortalIgnitionHandlerTest.java
     ├── PortalPositionFinderTest.java
     └── PortalStructureBuilderTest.java
 
 src/gameTest/java/com/ejafi/egmd/
-├── GameTestTemplates.java                 # Template name constants (EMPTY_7X7X7)
+├── GameTestTemplates.java                 # Template name constant EMPTY_7X7X7 and its center position, EMPTY_7X7X7_CENTER
 ├── dimension/
 │   ├── BedGuardGameTests.java
+│   ├── ClearSpaceFinderGameTests.java
 │   ├── EgmdBiomesGameTests.java
-│   ├── HostileMobGuardGameTests.java
-│   └── PlayerRelocatorGameTests.java
+│   └── HostileMobGuardGameTests.java
 ├── pearl/
 │   └── PearlBlockGameTests.java
 └── portal/
-    └── PortalGameTests.java
+    ├── PortalGameTestSupport.java         # Shared portal origin, portal states, frame at origin, and interior assertion
+    ├── DimensionPortalBlockGameTests.java
+    ├── ExitPortalFinderGameTests.java
+    ├── PortalCornerMaterialsGameTests.java
+    ├── PortalExitSelectorGameTests.java
+    ├── PortalIgnitionHandlerGameTests.java
+    ├── PortalPositionFinderGameTests.java
+    └── PortalStructureBuilderGameTests.java
 ```
 
 ## How it works
@@ -159,7 +176,7 @@ A new dimension needs these additions and no change to any rule, the portal bloc
 
 1. An `EgmdDimension` constant in `EgmdDimensions`, appended to its `ALL` list.
 2. A `PortalVariant` constant in `PortalVariants`, appended to its `ALL` list.
-3. Its biome key in `EgmdBiomes`, and its biome and any features in a datagen class, called from the matching registry in `DataGatherer`.
+3. Its biome key in `EgmdBiomes`, and its biome and any features in a class in `datagen.worldgen`, called from the matching registry in `DataGatherer`.
 4. A `LevelDefinition` in `EgmdLevels`, with a dimension type factory.
 5. Its corner tag contents in `EgmdBlockTagsProvider`, and its portal name, corner hint, and biome name in `EgmdLanguageProvider`.
 
@@ -182,9 +199,15 @@ Each variant also names its corner tag, `egmd:<id>_corners`, its corner hint key
 
 `PortalIgnitionHandler` handles `PlayerInteractEvent.RightClickBlock` when the held item is in `egmd:portal_igniters` or has the `FIRESTARTER_LIGHT` item ability. The click must hit a frame block whose clicked face opens onto air or fire, or hit fire standing on a frame block. Infested frame blocks count as frame.
 
-The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
+The handler asks the `chooseIgnition` decision for an `Ignition`. The decision refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and picks the first whose four corners are all in the variant's corner tag.
 
-The corners are the cells diagonal to the interior rectangle, which `PortalFrame.readCorners()` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `isValid`, `isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
+| Situation | `Ignition` | Effect |
+|---|---|---|
+| Not an igniter, no frame at the click, a refused click, or no empty frame | `Ignored` | Nothing |
+| Empty frames, none with valid corners | `MissingCorners` | The corner hint described below |
+| An empty frame with valid corners | `Lights` | The frame fills with portal blocks |
+
+The corners are the cells diagonal to the interior rectangle, which `PortalFrameReader.readCorners` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `PortalFrameReader.find`, `PortalFrameReader.isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
 
 When an empty frame exists but none has valid corners, the handler leaves the click alone, so vanilla Flint and Steel places fire as usual. On the server, and only in the Overworld, the player also gets the variant's corner hint on the action bar. In Nether Mining and End Mining every tunnel through Netherrack or End Stone is a frame without corners, so the hint would fire constantly there.
 
@@ -208,7 +231,7 @@ When it lights a frame, the handler cancels the click on both sides so the clien
 
 ### Exit portal corners
 
-`getPortalDestination` reads the source portal's corners through `PortalFrame.readCorners()` at the source portal block, and `PortalCornerMaterials.copyAll` maps them onto the exit portal by `PortalCorner`. Bottom corners stay at the bottom and top corners at the top. The corner at the lower coordinate along the source portal's axis goes to the corner at the lower coordinate along the exit's axis, which is the same axis.
+`getPortalDestination` reads the source portal's corners through `PortalFrameReader` at the source portal block, and `PortalCornerMaterials.copyAll` maps them onto the exit portal by `PortalCorner`. Bottom corners stay at the bottom and top corners at the top. The corner at the lower coordinate along the source portal's axis goes to the corner at the lower coordinate along the exit's axis, which is the same axis.
 
 Each copied state is replaced by the default state of its infested host, and a block outside the corner tag is replaced by the variant's default corner. That keeps a player from swapping valuable blocks into the corners of a lit portal and having them duplicated on the other side. A `FallingBlock`, such as Sand or Gravel, is replaced by the default corner at the bottom corners only, since nothing checks what lies under the platform and it would fall. When the source frame cannot be read, all four corners use the default.
 
@@ -216,9 +239,9 @@ Each copied state is replaced by the default state of its infested host, and a b
 
 ### Placement search
 
-`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `PortalFootprint.canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING` heightmap.
+`PortalPositionFinder` clamps the target inside the world border and loads the chunks the search covers. It then spirals out to radius 16 around the target, looking for a footprint where `canHost` holds. Hosting needs the portal plane and the exit cells to be open, with no fluid and no block entity, and the platform cells to be overwritable. `OnFlatSurface` searches at the fixed surface Y. `OnTerrain` moves each column to the `MOTION_BLOCKING` heightmap.
 
-With no open site, the finder forces one at the target column, provided `PortalFootprint.canForce` holds. Forcing needs every cell to be overwritable, meaning no block entity, no portal, and no unbreakable block. On terrain, the forced Y is clamped between `max(minY + 1, 70)` and `minY + min(height, logicalHeight) - 10`. `PortalStructureBuilder` clears the exit cells of a forced site before building.
+With no open site, the finder forces one at the target column, provided `canForce` holds. Forcing needs every cell to be overwritable, meaning no block entity, no portal, and no unbreakable block. On terrain, the forced Y is clamped between `max(minY + 1, 70)` and `minY + min(height, logicalHeight) - 10`. `PortalStructureBuilder` clears the exit cells of a forced site before building.
 
 ### Exit selection
 
@@ -250,7 +273,7 @@ Every EGMD dimension type sets `has_raids` to false. `EgmdLevels` sets `bed_work
 
 `BedGuard` handles the main-hand `PlayerInteractEvent.RightClickBlock` on both sides. When the pure `allowsUse` decision refuses a `BedBlock` and vanilla would use the bed, it cancels the click with `InteractionResult.SUCCESS`, and the server shows `message.egmd.bed.refused` on the action bar.
 
-Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard` mirrors that check from `ServerPlayerGameMode.useItemOn` and leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
+Vanilla uses the bed only from the main hand, and skips it when the player sneaks holding an item in either hand, unless every held item returns true from `doesSneakBypassUse`. `BedGuard.bypassesBlockUse` mirrors that check from `ServerPlayerGameMode.useItemOn`, and the handler leaves those clicks alone, so a sneaking player can still place a block against a bed. Respawn Anchors are not affected.
 
 ### The Haunted dimension
 
@@ -264,7 +287,7 @@ The biome generates the vanilla Overworld carvers, lakes, geodes, dungeons, spri
 
 ### Registration
 
-Each feature package owns its registers and exposes `register(IEventBus)`, which `EGMD` calls. `PortalRegisters` registers the portal blocks, POI types, and the particle type, and `PearlBlocks` registers the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
+Each feature package owns its registers and exposes `register(IEventBus)`, which `Egmd` calls. `PortalRegisters` registers the portal blocks, POI types, and the particle type, and `PearlBlocks` registers the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
 
 ### Data generation
 
@@ -294,7 +317,7 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 A unit test therefore never checks tag membership, and logic that depends on a tag takes a `Predicate<BlockState>` that the test supplies, as `PortalCornerMaterials` does. Tag contents are tested in GameTests, where the server loads data tags.
 
-**GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(EGMD.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
+**GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(Egmd.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
 
 **Fixtures** live in the `testFixtures` source set from Gradle's `java-test-fixtures` plugin, shared by the unit tests and the GameTests. The convention plugin binds `main`, `testFixtures`, `gameTest`, and `datagen` to the `egmd` mod, so the dev runs and the unit-test runtime load them as one mod, while the jar contains only `main`. Datafaker is also on `additionalRuntimeClasspath`, because the GameTests and fixtures that the dev runs load use it.
 

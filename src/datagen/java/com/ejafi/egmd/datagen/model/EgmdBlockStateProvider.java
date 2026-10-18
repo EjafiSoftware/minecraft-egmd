@@ -1,6 +1,6 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.model;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.pearl.PearlBlocks;
 import com.ejafi.egmd.portal.DimensionPortalBlock;
 import com.ejafi.egmd.portal.PortalRegisters;
@@ -17,17 +17,16 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
-final class EgmdBlockStateProvider extends BlockStateProvider {
-    private static final ResourceLocation PORTAL_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(EGMD.MOD_ID, "block/mining_portal");
+public final class EgmdBlockStateProvider extends BlockStateProvider {
+    private static final ResourceLocation PORTAL_TEXTURE = Egmd.createLocation("block/mining_portal");
     private static final String PORTAL_TEXTURE_KEY = "portal";
     private static final String TRANSLUCENT = "minecraft:translucent";
     private static final float PIXELS_PER_BLOCK = 16.0F;
     private static final PortalPlane NORTH_SOUTH = new PortalPlane("ns", Direction.NORTH, Axis.X);
     private static final PortalPlane EAST_WEST = new PortalPlane("ew", Direction.EAST, Axis.Z);
 
-    EgmdBlockStateProvider(PackOutput output, ExistingFileHelper fileHelper) {
-        super(output, EGMD.MOD_ID, fileHelper);
+    public EgmdBlockStateProvider(PackOutput output, ExistingFileHelper fileHelper) {
+        super(output, Egmd.MOD_ID, fileHelper);
     }
 
     @Override

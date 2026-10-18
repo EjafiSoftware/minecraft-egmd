@@ -1,9 +1,8 @@
 package com.ejafi.egmd.pearl;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import java.util.List;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,16 +16,15 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class PearlBlockGameTests {
-    private static final BlockPos PEARL_POS = new BlockPos(3, 1, 3);
 
     private PearlBlockGameTests() {}
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void get_drops_returns_pearl_block_when_tool_has_silk_touch(GameTestHelper helper) {
-        ItemStack pickaxe = enchant(helper, new ItemStack(Items.DIAMOND_PICKAXE), Enchantments.SILK_TOUCH);
+        ItemStack pickaxe = createEnchantedPickaxe(helper, Enchantments.SILK_TOUCH);
 
         List<Item> drops = mineWith(helper, pickaxe);
 
@@ -42,21 +40,22 @@ public final class PearlBlockGameTests {
         helper.succeed();
     }
 
-    private static ItemStack enchant(GameTestHelper helper, ItemStack tool, ResourceKey<Enchantment> enchantment) {
-        tool.enchant(
+    private static ItemStack createEnchantedPickaxe(GameTestHelper helper, ResourceKey<Enchantment> enchantment) {
+        var pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+        pickaxe.enchant(
                 helper.getLevel()
                         .registryAccess()
                         .lookupOrThrow(Registries.ENCHANTMENT)
                         .getOrThrow(enchantment),
                 1);
-        return tool;
+        return pickaxe;
     }
 
     private static List<Item> mineWith(GameTestHelper helper, ItemStack tool) {
         return Block.getDrops(
                         PearlBlocks.PEARL_BLOCK.get().defaultBlockState(),
                         helper.getLevel(),
-                        helper.absolutePos(PEARL_POS),
+                        helper.absolutePos(GameTestTemplates.EMPTY_7X7X7_CENTER),
                         null,
                         null,
                         tool)

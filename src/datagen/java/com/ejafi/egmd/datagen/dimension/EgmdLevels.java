@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.dimension;
 
 import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.dimension.EgmdDimension;
@@ -27,25 +27,34 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 
-final class EgmdLevels {
+public final class EgmdLevels {
+    private static final long NOON = 6000L;
+    private static final long MIDNIGHT = 18000L;
+    private static final DimensionType.MonsterSettings MINING_MONSTERS =
+            new DimensionType.MonsterSettings(false, false, ConstantInt.of(0), 0);
+    private static final DimensionType.MonsterSettings OVERWORLD_MONSTERS =
+            new DimensionType.MonsterSettings(false, false, UniformInt.of(0, 7), 0);
+    private static final Function<EgmdDimension, DimensionType> OVERWORLD_MINING_TYPE =
+            createOverworldLikeTypeFactory(NOON, MINING_MONSTERS);
+    private static final Function<EgmdDimension, DimensionType> HAUNTED_TYPE =
+            createOverworldLikeTypeFactory(MIDNIGHT, OVERWORLD_MONSTERS);
     private static final List<LevelDefinition> ALL = List.of(
-            new LevelDefinition(
-                    EgmdDimensions.OVERWORLD_MINING, EgmdBiomes.MINING_PLAINS, EgmdLevels::createOverworldMiningType),
+            new LevelDefinition(EgmdDimensions.OVERWORLD_MINING, EgmdBiomes.MINING_PLAINS, OVERWORLD_MINING_TYPE),
             new LevelDefinition(
                     EgmdDimensions.NETHER_MINING, EgmdBiomes.NETHER_MINING_WASTES, EgmdLevels::createNetherMiningType),
             new LevelDefinition(
                     EgmdDimensions.END_MINING, EgmdBiomes.END_MINING_WASTES, EgmdLevels::createEndMiningType),
-            new LevelDefinition(EgmdDimensions.HAUNTED, EgmdBiomes.HAUNTED_WOODS, EgmdLevels::createHauntedType));
+            new LevelDefinition(EgmdDimensions.HAUNTED, EgmdBiomes.HAUNTED_WOODS, HAUNTED_TYPE));
 
     private EgmdLevels() {}
 
-    static void bootstrapDimensionTypes(BootstrapContext<DimensionType> context) {
+    public static void bootstrapDimensionTypes(BootstrapContext<DimensionType> context) {
         for (LevelDefinition level : ALL) {
             context.register(level.toTypeKey(), level.typeFactory().apply(level.dimension()));
         }
     }
 
-    static void bootstrapLevelStems(BootstrapContext<LevelStem> context) {
+    public static void bootstrapLevelStems(BootstrapContext<LevelStem> context) {
         HolderGetter<DimensionType> types = context.lookup(Registries.DIMENSION_TYPE);
         for (LevelDefinition level : ALL) {
             context.register(
@@ -70,9 +79,10 @@ final class EgmdLevels {
         };
     }
 
-    private static DimensionType createOverworldMiningType(EgmdDimension dimension) {
-        return new DimensionType(
-                OptionalLong.of(6000L),
+    private static Function<EgmdDimension, DimensionType> createOverworldLikeTypeFactory(
+            long fixedTime, DimensionType.MonsterSettings monsters) {
+        return dimension -> new DimensionType(
+                OptionalLong.of(fixedTime),
                 true,
                 false,
                 false,
@@ -86,7 +96,7 @@ final class EgmdLevels {
                 BlockTags.INFINIBURN_OVERWORLD,
                 BuiltinDimensionTypes.OVERWORLD_EFFECTS,
                 0.0F,
-                new DimensionType.MonsterSettings(false, false, ConstantInt.of(0), 0));
+                monsters);
     }
 
     private static DimensionType createNetherMiningType(EgmdDimension dimension) {
@@ -125,25 +135,6 @@ final class EgmdLevels {
                 BuiltinDimensionTypes.END_EFFECTS,
                 1.0F,
                 new DimensionType.MonsterSettings(false, false, ConstantInt.of(15), 15));
-    }
-
-    private static DimensionType createHauntedType(EgmdDimension dimension) {
-        return new DimensionType(
-                OptionalLong.of(18000L),
-                true,
-                false,
-                false,
-                true,
-                1.0,
-                allowsBeds(dimension),
-                false,
-                dimension.terrain().minY(),
-                384,
-                384,
-                BlockTags.INFINIBURN_OVERWORLD,
-                BuiltinDimensionTypes.OVERWORLD_EFFECTS,
-                0.0F,
-                new DimensionType.MonsterSettings(false, false, UniformInt.of(0, 7), 0));
     }
 
     private static boolean allowsBeds(EgmdDimension dimension) {

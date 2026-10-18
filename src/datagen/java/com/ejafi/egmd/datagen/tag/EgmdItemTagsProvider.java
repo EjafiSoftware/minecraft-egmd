@@ -1,6 +1,6 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.tag;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.portal.PortalIgnitionHandler;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -13,16 +13,16 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-final class EgmdItemTagsProvider extends ItemTagsProvider {
+public final class EgmdItemTagsProvider extends ItemTagsProvider {
     private static final ResourceLocation UNBREAKABLE_NETHERITE_FLINT_AND_STEEL = ResourceLocation.fromNamespaceAndPath(
             "create_unbreakable_tools_series", "unbreakable_netherite_flint_and_steel");
 
-    EgmdItemTagsProvider(
+    public EgmdItemTagsProvider(
             PackOutput output,
             CompletableFuture<HolderLookup.Provider> lookup,
             CompletableFuture<TagsProvider.TagLookup<Block>> blockTags,
             ExistingFileHelper fileHelper) {
-        super(output, lookup, blockTags, EGMD.MOD_ID, fileHelper);
+        super(output, lookup, blockTags, Egmd.MOD_ID, fileHelper);
     }
 
     @Override

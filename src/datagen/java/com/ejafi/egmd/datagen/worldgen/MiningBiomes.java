@@ -1,4 +1,4 @@
-package com.ejafi.egmd.datagen;
+package com.ejafi.egmd.datagen.worldgen;
 
 import com.ejafi.egmd.dimension.EgmdBiomes;
 import java.util.List;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
-final class MiningBiomes {
+public final class MiningBiomes {
     private static final int WATER_COLOR = 0x3F76FF;
     private static final int WATER_FOG_COLOR = 0x050533;
     private static final List<ResourceKey<PlacedFeature>> VANILLA_OVERWORLD_ORES = List.of(
@@ -37,7 +37,7 @@ final class MiningBiomes {
 
     private MiningBiomes() {}
 
-    static void bootstrap(BootstrapContext<Biome> context) {
+    public static void bootstrap(BootstrapContext<Biome> context) {
         context.register(EgmdBiomes.MINING_PLAINS, createMiningPlains(context));
         context.register(EgmdBiomes.NETHER_MINING_WASTES, createNetherMiningWastes(context));
         context.register(EgmdBiomes.END_MINING_WASTES, createEndMiningWastes(context));

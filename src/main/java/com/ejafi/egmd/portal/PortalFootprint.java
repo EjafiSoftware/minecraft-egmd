@@ -2,16 +2,11 @@ package com.ejafi.egmd.portal;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Vec3i;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.CollisionGetter;
-import net.minecraft.world.level.block.Portal;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 record PortalFootprint(BlockPos origin, Axis axis) {
@@ -29,30 +24,17 @@ record PortalFootprint(BlockPos origin, Axis axis) {
         origin = origin.immutable();
     }
 
-    static boolean canHost(CollisionGetter level, PortalFootprint footprint) {
-        return fitsInWorld(level, footprint)
-                && Stream.concat(footprint.listPlaneCells().stream(), footprint.listExitCells().stream())
-                        .allMatch(pos -> isOpen(level.getBlockState(pos)))
-                && footprint.listPlatformCells().stream().allMatch(pos -> isOverwritable(level, pos));
+    PortalFrame locateFrame() {
+        return new PortalFrame(
+                new BlockUtil.FoundRectangle(origin, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT), axis);
     }
 
-    static boolean canForce(CollisionGetter level, PortalFootprint footprint) {
-        return fitsInWorld(level, footprint)
-                && Stream.of(footprint.listPlaneCells(), footprint.listExitCells(), footprint.listPlatformCells())
-                        .flatMap(List::stream)
-                        .allMatch(pos -> isOverwritable(level, pos));
-    }
-
-    static Direction resolveAlongDirection(Axis axis) {
-        return axis == Axis.X ? Direction.EAST : Direction.SOUTH;
+    List<BlockPos> listPlaneCells() {
+        return listCells(PLANE);
     }
 
     List<BlockPos> listExitCells() {
         return listCells(EXIT);
-    }
-
-    List<BlockPos> listPortalCells() {
-        return listCells(PORTAL);
     }
 
     List<BlockPos> listFrameCells() {
@@ -67,12 +49,7 @@ record PortalFootprint(BlockPos origin, Axis axis) {
     }
 
     Map<PortalCorner, BlockPos> locateCorners() {
-        return PortalCorner.locateAll(
-                new BlockUtil.FoundRectangle(origin, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT), axis);
-    }
-
-    private List<BlockPos> listPlaneCells() {
-        return listCells(PLANE);
+        return PortalCorner.locateAll(locateFrame());
     }
 
     private List<BlockPos> listCells(BoundingBox offsets) {
@@ -80,26 +57,9 @@ record PortalFootprint(BlockPos origin, Axis axis) {
     }
 
     private BlockPos resolveCell(Vec3i offset) {
-        Direction along = resolveAlongDirection(axis);
+        Direction along = PortalFrame.resolveAlongDirection(axis);
         return origin.relative(along, offset.getX())
                 .relative(along.getClockWise(), offset.getZ())
                 .above(offset.getY());
-    }
-
-    private static boolean fitsInWorld(CollisionGetter level, PortalFootprint footprint) {
-        return footprint.origin().getY() - 1 > level.getMinBuildHeight()
-                && footprint.origin().getY() + PortalFrame.MIN_HEIGHT < level.getMaxBuildHeight()
-                && footprint.listPlatformCells().stream().allMatch(level.getWorldBorder()::isWithinBounds);
-    }
-
-    private static boolean isOpen(BlockState state) {
-        return (state.isAir() || state.canBeReplaced()) && state.getFluidState().isEmpty() && !state.hasBlockEntity();
-    }
-
-    private static boolean isOverwritable(BlockGetter level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        return !state.hasBlockEntity()
-                && !(state.getBlock() instanceof Portal)
-                && state.getDestroySpeed(level, pos) >= 0;
     }
 }

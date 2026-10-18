@@ -6,7 +6,6 @@ import com.ejafi.egmd.dimension.Terrain;
 import com.mojang.logging.LogUtils;
 import java.util.Map;
 import java.util.Optional;
-import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -24,6 +23,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelWriter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlockContainer;
@@ -50,6 +50,7 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
     private static final VoxelShape X_AXIS_PANE = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
     private static final VoxelShape Z_AXIS_PANE = Block.box(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
     private static final int PARTICLE_ALPHA = 0xC8;
+    private static final int PLACEMENT_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
 
     private final PortalVariant variant;
     private final int particleColor;
@@ -154,39 +155,40 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
             }
         }
 
-        ServerLevel destLevel = serverLevel.getServer().getLevel(destination);
-        if (destLevel == null) {
+        ServerLevel destinationLevel = serverLevel.getServer().getLevel(destination);
+        if (destinationLevel == null) {
             LOGGER.warn("Portal destination dimension {} does not exist", destination.location());
             return null;
         }
 
-        double scale = DimensionType.getTeleportationScale(serverLevel.dimensionType(), destLevel.dimensionType());
-        BlockPos scaledPos =
-                destLevel.getWorldBorder().clampToBounds(entity.getX() * scale, entity.getY(), entity.getZ() * scale);
+        double scale =
+                DimensionType.getTeleportationScale(serverLevel.dimensionType(), destinationLevel.dimensionType());
+        BlockPos scaledPos = destinationLevel
+                .getWorldBorder()
+                .clampToBounds(entity.getX() * scale, entity.getY(), entity.getZ() * scale);
         Axis sourceAxis = serverLevel.getBlockState(pos).getOptionalValue(AXIS).orElse(Axis.X);
         ArrivalTarget target = computeArrivalTarget(new PortalFootprint(scaledPos, sourceAxis), destination);
+        var sourceFrames = new PortalFrameReader(serverLevel, this);
         Map<PortalCorner, BlockState> exitCorners = PortalCornerMaterials.create(variant)
-                .copyAll(new PortalFrame(serverLevel, pos, sourceAxis, this).readCorners());
+                .copyAll(sourceFrames
+                        .find(pos, sourceAxis)
+                        .map(sourceFrames::readCorners)
+                        .orElse(Map.of()));
 
-        Optional<BlockUtil.FoundRectangle> exitPortal =
-                new ExitPortalFinder(destLevel, variant).findOrCreate(target, exitCorners);
+        Optional<PortalFrame> exitPortal =
+                new ExitPortalFinder(destinationLevel, variant).findOrCreate(target, exitCorners);
         if (exitPortal.isEmpty()) {
             LOGGER.warn(
                     "No safe place to build a portal near {} in dimension {}",
                     target.footprint().origin(),
-                    destLevel.dimension().location());
-            notifyPlayer(entity, PortalMessages.NO_SAFE_LOCATION);
+                    destinationLevel.dimension().location());
+            notifyNoSafeLocation(entity);
             return null;
         }
 
-        BlockUtil.FoundRectangle rectangle = exitPortal.orElseThrow();
-        Axis exitAxis = destLevel
-                .getBlockState(rectangle.minCorner)
-                .getOptionalValue(AXIS)
-                .orElse(sourceAxis);
-        PortalExit exit = new PortalExitSelector(destLevel, entity).select(rectangle, exitAxis);
+        PortalExit exit = new PortalExitSelector(destinationLevel, entity).select(exitPortal.orElseThrow());
         return new DimensionTransition(
-                destLevel,
+                destinationLevel,
                 exit.position(),
                 Vec3.ZERO,
                 exit.yRot(),
@@ -195,11 +197,12 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
     }
 
     static PortalRoute chooseRoute(Entity traveler, ResourceKey<Level> portalDimension) {
-        ResourceKey<Level> destination = resolveDestination(traveler.level().dimension(), portalDimension);
-        if (destination == null) {
+        Optional<ResourceKey<Level>> found = resolveDestination(traveler.level().dimension(), portalDimension);
+        if (found.isEmpty()) {
             return new PortalRoute.Unlinked();
         }
 
+        ResourceKey<Level> destination = found.orElseThrow();
         if (!HostileMobGuard.admits(traveler, EgmdDimensions.getRestrictions(destination))) {
             return new PortalRoute.Refused();
         }
@@ -207,15 +210,15 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
         return new PortalRoute.Travel(destination);
     }
 
-    static @Nullable ResourceKey<Level> resolveDestination(
+    static Optional<ResourceKey<Level>> resolveDestination(
             ResourceKey<Level> current, ResourceKey<Level> portalDimension) {
         if (current.equals(Level.OVERWORLD)) {
-            return portalDimension;
+            return Optional.of(portalDimension);
         }
         if (current.equals(portalDimension)) {
-            return Level.OVERWORLD;
+            return Optional.of(Level.OVERWORLD);
         }
-        return null;
+        return Optional.empty();
     }
 
     static ArrivalTarget computeArrivalTarget(PortalFootprint scaled, ResourceKey<Level> destination) {
@@ -229,9 +232,9 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
                 .orElseGet(() -> new ArrivalTarget.OnTerrain(scaled));
     }
 
-    private static void notifyPlayer(Entity entity, String translationKey) {
+    private static void notifyNoSafeLocation(Entity entity) {
         if (entity instanceof ServerPlayer player) {
-            player.displayClientMessage(Component.translatable(translationKey), true);
+            player.displayClientMessage(Component.translatable(PortalMessages.NO_SAFE_LOCATION), true);
         }
     }
 
@@ -260,11 +263,19 @@ public final class DimensionPortalBlock extends Block implements Portal, LiquidB
             BlockPos pos,
             BlockPos neighborPos) {
         Axis axis = state.getValue(AXIS);
-        return !isAcrossPlane(axis, direction)
-                        && !neighborState.is(this)
-                        && !new PortalFrame(level, pos, axis, this).isComplete()
-                ? Blocks.AIR.defaultBlockState()
-                : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        if (!isAcrossPlane(axis, direction) && !neighborState.is(this)) {
+            var frames = new PortalFrameReader(level, this);
+            if (frames.find(pos, axis).filter(frames::isComplete).isEmpty()) {
+                return Blocks.AIR.defaultBlockState();
+            }
+        }
+
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+    }
+
+    void fill(LevelWriter writer, PortalFrame frame) {
+        BlockState state = defaultBlockState().setValue(AXIS, frame.axis());
+        frame.streamInterior().forEach(pos -> writer.setBlock(pos, state, PLACEMENT_FLAGS));
     }
 
     static boolean isAcrossPlane(Axis portalAxis, Direction direction) {

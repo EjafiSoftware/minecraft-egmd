@@ -1,6 +1,6 @@
 package com.ejafi.egmd.pearl;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
@@ -14,8 +14,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class PearlBlocks {
-    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(EGMD.MOD_ID);
-    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(EGMD.MOD_ID);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Egmd.MOD_ID);
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Egmd.MOD_ID);
 
     public static final DeferredBlock<Block> PEARL_BLOCK = BLOCKS.register(
             "pearl_block",

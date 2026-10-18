@@ -1,6 +1,6 @@
 package com.ejafi.egmd.portal;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.mojang.serialization.MapCodec;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -25,11 +25,11 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class PortalRegisters {
-    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(EGMD.MOD_ID);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Egmd.MOD_ID);
     private static final DeferredRegister<PoiType> POI_TYPES =
-            DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, EGMD.MOD_ID);
+            DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, Egmd.MOD_ID);
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES =
-            DeferredRegister.create(Registries.PARTICLE_TYPE, EGMD.MOD_ID);
+            DeferredRegister.create(Registries.PARTICLE_TYPE, Egmd.MOD_ID);
 
     public static final Map<PortalVariant, DeferredBlock<DimensionPortalBlock>> PORTAL_BLOCKS =
             registerPerVariant(variant -> BLOCKS.register(

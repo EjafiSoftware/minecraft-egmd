@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Axis;
 
 enum PortalCorner {
     LOW_BOTTOM,
@@ -19,8 +18,8 @@ enum PortalCorner {
         return Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(Function.identity(), mapper));
     }
 
-    static Map<PortalCorner, BlockPos> locateAll(BlockUtil.FoundRectangle interior, Axis axis) {
-        return mapAll(corner -> corner.locate(interior, axis));
+    static Map<PortalCorner, BlockPos> locateAll(PortalFrame frame) {
+        return mapAll(corner -> corner.locate(frame));
     }
 
     boolean isBottom() {
@@ -30,8 +29,9 @@ enum PortalCorner {
         };
     }
 
-    private BlockPos locate(BlockUtil.FoundRectangle interior, Axis axis) {
-        Direction along = PortalFootprint.resolveAlongDirection(axis);
+    private BlockPos locate(PortalFrame frame) {
+        Direction along = frame.getAlongDirection();
+        BlockUtil.FoundRectangle interior = frame.interior();
         BlockPos low = interior.minCorner.relative(along, -1);
         BlockPos high = interior.minCorner.relative(along, interior.axis1Size);
         return switch (this) {
