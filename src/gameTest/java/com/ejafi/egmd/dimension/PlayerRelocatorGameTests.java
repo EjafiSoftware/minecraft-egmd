@@ -1,6 +1,6 @@
 package com.ejafi.egmd.dimension;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import java.util.Optional;
 import net.datafaker.Faker;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class PlayerRelocatorGameTests {
     private static final Faker FAKER = new Faker();

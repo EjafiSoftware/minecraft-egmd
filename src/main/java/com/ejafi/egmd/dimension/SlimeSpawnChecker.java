@@ -1,9 +1,8 @@
 package com.ejafi.egmd.dimension;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
@@ -16,10 +15,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 
-@EventBusSubscriber(modid = EGMD.MOD_ID)
+@EventBusSubscriber(modid = Egmd.MOD_ID)
 public final class SlimeSpawnChecker {
-    public static final TagKey<Biome> ALLOWS_FULL_MOON_SLIME_SPAWNS = TagKey.create(
-            Registries.BIOME, ResourceLocation.fromNamespaceAndPath(EGMD.MOD_ID, "allows_full_moon_slime_spawns"));
+    public static final TagKey<Biome> ALLOWS_FULL_MOON_SLIME_SPAWNS =
+            TagKey.create(Registries.BIOME, Egmd.createLocation("allows_full_moon_slime_spawns"));
     static final int SURFACE_MIN_Y = 51;
     static final int SURFACE_MAX_Y = 69;
     static final float SPAWN_CHANCE = 0.5F;

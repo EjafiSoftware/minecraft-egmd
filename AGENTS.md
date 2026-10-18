@@ -41,7 +41,7 @@ Pushing a tag that equals `mod_version`, such as `2.2.0`, on a commit in `main` 
 
 ```
 com.ejafi.egmd/
-├── EGMD.java                              # @Mod entry point: calls each feature's register(IEventBus) and registers PortalConfig.SPEC as the COMMON config
+├── Egmd.java                              # @Mod entry point: calls each feature's register(IEventBus) and registers PortalConfig.SPEC as the COMMON config
 ├── portal/
 │   ├── PortalRegisters.java               # Block, POI type, and portal_spark particle registers; getPortalBlock(variant)
 │   ├── PortalConfig.java                  # ModConfigSpec with portalSearchRadius (16 to 512, default 128); its description feeds the config comment and the screen tooltip
@@ -264,7 +264,7 @@ The biome generates the vanilla Overworld carvers, lakes, geodes, dungeons, spri
 
 ### Registration
 
-Each feature package owns its registers and exposes `register(IEventBus)`, which `EGMD` calls. `PortalRegisters` registers the portal blocks, POI types, and the particle type, and `PearlBlocks` registers the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
+Each feature package owns its registers and exposes `register(IEventBus)`, which `Egmd` calls. `PortalRegisters` registers the portal blocks, POI types, and the particle type, and `PearlBlocks` registers the pearl block and its item. Portal blocks have no items. Dimensions, biomes, and features are datapack registry entries produced by data generation.
 
 ### Data generation
 
@@ -294,7 +294,7 @@ On this NeoForge build, `@EventBusSubscriber` registers each handler on the bus 
 
 A unit test therefore never checks tag membership, and logic that depends on a tag takes a `Predicate<BlockState>` that the test supplies, as `PortalCornerMaterials` does. Tag contents are tested in GameTests, where the server loads data tags.
 
-**GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(EGMD.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
+**GameTests** live in `src/gameTest`. Each holder class carries `@GameTestHolder(Egmd.MOD_ID)` and `@PrefixGameTestTemplate(false)`, and each test names its template through `GameTestTemplates.EMPTY_7X7X7`, which resolves to `src/gameTest/resources/data/egmd/structure/empty_7x7x7.nbt`. The GameTest server loads only the vanilla dimensions, so behavior that needs an EGMD dimension loaded is tested through its pure decision method. The rule decisions take a `Set<Restriction>`, so their tests use `RestrictionsFaker` rather than a registered dimension.
 
 **Fixtures** live in the `testFixtures` source set from Gradle's `java-test-fixtures` plugin, shared by the unit tests and the GameTests. The convention plugin binds `main`, `testFixtures`, `gameTest`, and `datagen` to the `egmd` mod, so the dev runs and the unit-test runtime load them as one mod, while the jar contains only `main`. Datafaker is also on `additionalRuntimeClasspath`, because the GameTests and fixtures that the dev runs load use it.
 

@@ -1,6 +1,6 @@
 package com.ejafi.egmd.dimension;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class BedGuardGameTests {
     private static final BlockPos BED = new BlockPos(3, 1, 3);

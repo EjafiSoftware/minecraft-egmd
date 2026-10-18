@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.portal.PortalIgnitionHandler;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -22,7 +22,7 @@ final class EgmdItemTagsProvider extends ItemTagsProvider {
             CompletableFuture<HolderLookup.Provider> lookup,
             CompletableFuture<TagsProvider.TagLookup<Block>> blockTags,
             ExistingFileHelper fileHelper) {
-        super(output, lookup, blockTags, EGMD.MOD_ID, fileHelper);
+        super(output, lookup, blockTags, Egmd.MOD_ID, fileHelper);
     }
 
     @Override

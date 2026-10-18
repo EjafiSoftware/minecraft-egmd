@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.pearl.PearlBlocks;
 import java.util.Set;
 import net.minecraft.core.Holder;
@@ -43,7 +43,7 @@ final class EgmdBlockLootProvider extends BlockLootSubProvider {
     protected Iterable<Block> getKnownBlocks() {
         return BuiltInRegistries.BLOCK.stream()
                 .filter(block ->
-                        EGMD.MOD_ID.equals(BuiltInRegistries.BLOCK.getKey(block).getNamespace()))
+                        Egmd.MOD_ID.equals(BuiltInRegistries.BLOCK.getKey(block).getNamespace()))
                 .toList();
     }
 }

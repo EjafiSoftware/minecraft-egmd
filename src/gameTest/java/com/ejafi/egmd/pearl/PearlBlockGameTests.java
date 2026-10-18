@@ -1,6 +1,6 @@
 package com.ejafi.egmd.pearl;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class PearlBlockGameTests {
     private static final BlockPos PEARL_POS = new BlockPos(3, 1, 3);

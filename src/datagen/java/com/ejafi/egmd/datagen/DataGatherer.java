@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.RegistrySetBuilder;
@@ -12,7 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = EGMD.MOD_ID)
+@EventBusSubscriber(modid = Egmd.MOD_ID)
 public final class DataGatherer {
     private DataGatherer() {}
 

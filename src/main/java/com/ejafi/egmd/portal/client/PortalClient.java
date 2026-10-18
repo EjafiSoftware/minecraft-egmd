@@ -1,6 +1,6 @@
 package com.ejafi.egmd.portal.client;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.portal.PortalRegisters;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-@Mod(value = EGMD.MOD_ID, dist = Dist.CLIENT)
+@Mod(value = Egmd.MOD_ID, dist = Dist.CLIENT)
 public final class PortalClient {
     public PortalClient(ModContainer container, IEventBus modEventBus) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);

@@ -1,6 +1,6 @@
 package com.ejafi.egmd.portal;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -35,10 +34,10 @@ import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-@EventBusSubscriber(modid = EGMD.MOD_ID)
+@EventBusSubscriber(modid = Egmd.MOD_ID)
 public final class PortalIgnitionHandler {
     public static final TagKey<Item> PORTAL_IGNITERS =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(EGMD.MOD_ID, "portal_igniters"));
+            TagKey.create(Registries.ITEM, Egmd.createLocation("portal_igniters"));
     private static final List<Axis> PORTAL_AXES = List.of(Axis.X, Axis.Z);
     private static final Map<Block, PortalVariant> VARIANTS_BY_FRAME = PortalVariants.ALL.stream()
             .collect(Collectors.toUnmodifiableMap(PortalVariant::frameBlock, Function.identity()));

@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.dimension.DimensionMessages;
 import com.ejafi.egmd.dimension.EgmdBiomes;
 import com.ejafi.egmd.pearl.PearlBlocks;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 final class EgmdLanguageProvider extends LanguageProvider {
     EgmdLanguageProvider(PackOutput output) {
-        super(output, EGMD.MOD_ID, "en_us");
+        super(output, Egmd.MOD_ID, "en_us");
     }
 
     @Override

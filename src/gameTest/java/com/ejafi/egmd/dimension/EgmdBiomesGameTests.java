@@ -1,6 +1,6 @@
 package com.ejafi.egmd.dimension;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class EgmdBiomesGameTests {
     private EgmdBiomesGameTests() {}

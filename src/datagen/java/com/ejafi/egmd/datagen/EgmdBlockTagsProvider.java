@@ -1,6 +1,6 @@
 package com.ejafi.egmd.datagen;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.pearl.PearlBlocks;
 import com.ejafi.egmd.portal.PortalVariants;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +15,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 final class EgmdBlockTagsProvider extends BlockTagsProvider {
     EgmdBlockTagsProvider(
             PackOutput output, CompletableFuture<HolderLookup.Provider> lookup, ExistingFileHelper fileHelper) {
-        super(output, lookup, EGMD.MOD_ID, fileHelper);
+        super(output, lookup, Egmd.MOD_ID, fileHelper);
     }
 
     @Override

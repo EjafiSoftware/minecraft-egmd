@@ -1,6 +1,6 @@
 package com.ejafi.egmd.portal;
 
-import com.ejafi.egmd.EGMD;
+import com.ejafi.egmd.Egmd;
 import com.ejafi.egmd.GameTestTemplates;
 import com.ejafi.egmd.dimension.EgmdDimensionFaker;
 import com.ejafi.egmd.dimension.Restriction;
@@ -42,7 +42,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(EGMD.MOD_ID)
+@GameTestHolder(Egmd.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class PortalGameTests {
     private static final Faker FAKER = new Faker();
