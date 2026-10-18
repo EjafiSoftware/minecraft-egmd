@@ -114,7 +114,8 @@ public final class PortalGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void find_portal_around_returns_portal_when_it_sits_far_above_target(GameTestHelper helper) {
-        DimensionPortalBlock portal = RegisteredPortalBlocks.getOverworldMiningPortalBlock();
+        DimensionPortalBlock portal =
+                PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING).get();
         BlockPos portalPos = new BlockPos(3, 5, 3);
         helper.setBlock(portalPos, portal.defaultBlockState());
 
@@ -128,8 +129,9 @@ public final class PortalGameTests {
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void find_portal_around_returns_farther_portal_when_nearer_poi_holds_vanilla_nether_portal(
             GameTestHelper helper) {
-        BlockState portalState =
-                RegisteredPortalBlocks.getOverworldMiningPortalBlock().defaultBlockState();
+        BlockState portalState = PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING)
+                .get()
+                .defaultBlockState();
         BlockPos stalePos = helper.absolutePos(ORIGIN);
         helper.setBlock(ORIGIN, portalState);
         helper.getLevel().getChunkAt(stalePos).setBlockState(stalePos, Blocks.NETHER_PORTAL.defaultBlockState(), false);
@@ -413,7 +415,8 @@ public final class PortalGameTests {
             GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int actual = RegisteredPortalBlocks.getOverworldMiningPortalBlock()
+        int actual = PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING)
+                .get()
                 .getPortalTransitionTime(helper.getLevel(), player);
 
         helper.assertValueEqual(actual, getVanillaPortalDelay(helper), "transition time");
@@ -568,7 +571,9 @@ public final class PortalGameTests {
 
     private static void buildPortal(GameTestHelper helper, PortalSite site) {
         new PortalStructureBuilder(
-                        RegisteredPortalBlocks.getOverworldMiningPortalBlock(), new PortalCornersFaker().generate())
+                        PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING)
+                                .get(),
+                        new PortalCornersFaker().generate())
                 .build(helper.getLevel(), site);
     }
 
@@ -578,7 +583,8 @@ public final class PortalGameTests {
     }
 
     private static BlockState getFrameState() {
-        return RegisteredPortalBlocks.getOverworldMiningPortalBlock()
+        return PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING)
+                .get()
                 .getFrameBlock()
                 .defaultBlockState();
     }

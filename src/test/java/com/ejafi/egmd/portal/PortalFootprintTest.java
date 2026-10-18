@@ -41,7 +41,8 @@ class PortalFootprintTest {
                 Arguments.argumentSet(
                         "another portal in frame plane",
                         new BlockPos(0, 1, 0),
-                        RegisteredPortalBlocks.getOverworldMiningPortalBlock()),
+                        PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING)
+                                .get()),
                 Arguments.argumentSet("solid block in frame plane", new BlockPos(0, 2, 0), Blocks.STONE),
                 Arguments.argumentSet("water in frame plane", new BlockPos(0, 1, 0), Blocks.WATER),
                 Arguments.argumentSet("bedrock under platform", new BlockPos(-1, -1, 0), Blocks.BEDROCK),

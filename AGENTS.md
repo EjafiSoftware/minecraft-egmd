@@ -112,8 +112,7 @@ src/testFixtures/java/com/ejafi/egmd/
     ├── FakeLevel.java                     # Map-backed CollisionGetter and LevelWriter for unit tests
     ├── PortalCornersFaker.java            # Four distinct non-frame corner states; fillCorners() for one state at every corner
     ├── PortalFootprintFaker.java          # Random PortalFootprint at a Y where a portal fits
-    ├── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior, with corners that default to the frame block
-    └── RegisteredPortalBlocks.java        # The registered Overworld Mining portal block
+    └── PortalFrameBuilder.java            # Writes a frame of any block around a portal interior, with corners that default to the frame block
 
 src/test/java/com/ejafi/egmd/
 ├── dimension/

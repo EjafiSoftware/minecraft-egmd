@@ -18,7 +18,8 @@ class PortalFrameTest {
     private static final Faker FAKER = new Faker();
 
     private final FakeLevel level = new FakeLevel();
-    private final DimensionPortalBlock portalBlock = RegisteredPortalBlocks.getOverworldMiningPortalBlock();
+    private final DimensionPortalBlock portalBlock =
+            PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING).get();
     private final PortalFrameBuilder frameBuilder = new PortalFrameBuilder(level, portalBlock.getFrameBlock());
     private final BlockPos interiorBottomLeft = new BlockPosFaker()
             .withY(FAKER.number()

@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
 
 class PortalStructureBuilderTest {
     private final FakeLevel level = new FakeLevel();
-    private final DimensionPortalBlock portalBlock = RegisteredPortalBlocks.getOverworldMiningPortalBlock();
+    private final DimensionPortalBlock portalBlock =
+            PortalRegisters.getPortalBlock(PortalVariants.OVERWORLD_MINING).get();
     private final Map<PortalCorner, BlockState> corners = new PortalCornersFaker().generate();
     private final PortalStructureBuilder builder = new PortalStructureBuilder(portalBlock, corners);
 
