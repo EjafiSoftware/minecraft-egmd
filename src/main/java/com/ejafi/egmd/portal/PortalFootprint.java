@@ -43,16 +43,13 @@ record PortalFootprint(BlockPos origin, Axis axis) {
                         .allMatch(pos -> isOverwritable(level, pos));
     }
 
-    static Direction resolveAlongDirection(Axis axis) {
-        return axis == Axis.X ? Direction.EAST : Direction.SOUTH;
+    PortalFrame locateFrame() {
+        return new PortalFrame(
+                new BlockUtil.FoundRectangle(origin, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT), axis);
     }
 
     List<BlockPos> listExitCells() {
         return listCells(EXIT);
-    }
-
-    List<BlockPos> listPortalCells() {
-        return listCells(PORTAL);
     }
 
     List<BlockPos> listFrameCells() {
@@ -67,8 +64,7 @@ record PortalFootprint(BlockPos origin, Axis axis) {
     }
 
     Map<PortalCorner, BlockPos> locateCorners() {
-        return PortalCorner.locateAll(
-                new BlockUtil.FoundRectangle(origin, PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT), axis);
+        return PortalCorner.locateAll(locateFrame());
     }
 
     private List<BlockPos> listPlaneCells() {
@@ -80,7 +76,7 @@ record PortalFootprint(BlockPos origin, Axis axis) {
     }
 
     private BlockPos resolveCell(Vec3i offset) {
-        Direction along = resolveAlongDirection(axis);
+        Direction along = PortalFrame.resolveAlongDirection(axis);
         return origin.relative(along, offset.getX())
                 .relative(along.getClockWise(), offset.getZ())
                 .above(offset.getY());

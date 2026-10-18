@@ -37,9 +37,7 @@ final class PortalStructureBuilder {
                         Map.Entry::getValue, entry -> Objects.requireNonNull(corners.get(entry.getKey()))));
         Stream.concat(footprint.listFrameCells().stream(), footprint.listPlatformCells().stream())
                 .forEach(pos -> level.setBlock(pos, cornerStates.getOrDefault(pos, frame), Block.UPDATE_ALL));
-
-        BlockState portalState = portal.defaultBlockState().setValue(DimensionPortalBlock.AXIS, footprint.axis());
-        footprint.listPortalCells().forEach(pos -> level.setBlock(pos, portalState, PortalFrame.PORTAL_UPDATE_FLAGS));
+        portal.fill(level, footprint.locateFrame());
     }
 
     private static void clearExit(LevelWriter level, PortalFootprint footprint) {

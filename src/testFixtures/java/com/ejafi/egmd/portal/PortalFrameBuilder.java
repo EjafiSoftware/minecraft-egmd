@@ -7,7 +7,6 @@ import java.util.Objects;
 import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.LevelWriter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,21 +32,22 @@ final class PortalFrameBuilder {
         return this;
     }
 
-    void build(BlockUtil.FoundRectangle interior, Axis axis) {
-        Direction along = PortalFootprint.resolveAlongDirection(axis);
-        BlockPos bottomLeft = interior.minCorner;
+    void build(PortalFrame portalFrame) {
+        Direction along = portalFrame.getAlongDirection();
+        BlockUtil.FoundRectangle interior = portalFrame.interior();
+        BlockPos minCorner = interior.minCorner;
 
         for (int offset = 0; offset < interior.axis1Size; offset++) {
-            place(bottomLeft.relative(along, offset).below(), frame);
-            place(bottomLeft.relative(along, offset).above(interior.axis2Size), frame);
+            place(minCorner.relative(along, offset).below(), frame);
+            place(minCorner.relative(along, offset).above(interior.axis2Size), frame);
         }
 
         for (int up = 0; up < interior.axis2Size; up++) {
-            place(bottomLeft.relative(along, -1).above(up), frame);
-            place(bottomLeft.relative(along, interior.axis1Size).above(up), frame);
+            place(minCorner.relative(along, -1).above(up), frame);
+            place(minCorner.relative(along, interior.axis1Size).above(up), frame);
         }
 
-        Map<PortalCorner, BlockPos> cornerCells = PortalCorner.locateAll(interior, axis);
+        Map<PortalCorner, BlockPos> cornerCells = PortalCorner.locateAll(portalFrame);
         corners.forEach((corner, state) -> place(Objects.requireNonNull(cornerCells.get(corner)), state));
     }
 

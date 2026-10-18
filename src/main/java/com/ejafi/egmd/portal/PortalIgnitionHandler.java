@@ -58,16 +58,22 @@ public final class PortalIgnitionHandler {
         }
 
         Ignition ignition = found.orElseThrow();
-        List<PortalFrame> emptyFrames = findEmptyFrames(level, ignition);
+        DimensionPortalBlock portalBlock =
+                PortalRegisters.getPortalBlock(ignition.variant()).get();
+        var frames = new PortalFrameReader(level, portalBlock);
+        List<PortalFrame> emptyFrames = PORTAL_AXES.stream()
+                .flatMap(axis -> frames.find(ignition.portalPos(), axis).stream())
+                .filter(frames::isEmpty)
+                .toList();
         if (emptyFrames.isEmpty()) {
             return;
         }
 
         PortalCornerMaterials materials = PortalCornerMaterials.create(ignition.variant());
-        Optional<PortalFrame> shape = emptyFrames.stream()
-                .filter(frame -> materials.acceptsAll(frame.readCorners()))
+        Optional<PortalFrame> ignitable = emptyFrames.stream()
+                .filter(frame -> materials.acceptsAll(frames.readCorners(frame)))
                 .findFirst();
-        if (shape.isEmpty()) {
+        if (ignitable.isEmpty()) {
             showCornerHint(event, ignition.variant());
             return;
         }
@@ -78,7 +84,7 @@ public final class PortalIgnitionHandler {
             return;
         }
 
-        shape.orElseThrow().createPortalBlocks(level);
+        portalBlock.fill(level, ignitable.orElseThrow());
         SoundEvent sound = chargeIgniter(event);
         level.playSound(
                 null,
@@ -118,21 +124,12 @@ public final class PortalIgnitionHandler {
         Direction face = hit.getDirection();
         BlockPos portalPos = clickedPos.relative(face);
         return findVariantForFrame(clicked)
-                .filter(variant -> PortalFrame.isOpenCell(level.getBlockState(portalPos)))
+                .filter(variant -> PortalFrameReader.isOpenCell(level.getBlockState(portalPos)))
                 .map(variant -> new Ignition(portalPos, face, variant));
     }
 
     private static Optional<PortalVariant> findVariantForFrame(BlockState frame) {
-        return Optional.ofNullable(VARIANTS_BY_FRAME.get(PortalFrame.resolveInfestedHost(frame)));
-    }
-
-    private static List<PortalFrame> findEmptyFrames(BlockGetter level, Ignition ignition) {
-        DimensionPortalBlock portalBlock =
-                PortalRegisters.getPortalBlock(ignition.variant()).get();
-        return PORTAL_AXES.stream()
-                .map(axis -> new PortalFrame(level, ignition.portalPos(), axis, portalBlock))
-                .filter(PortalFrame::isEmptyFrame)
-                .toList();
+        return Optional.ofNullable(VARIANTS_BY_FRAME.get(PortalFrameReader.resolveInfestedHost(frame)));
     }
 
     private static void showCornerHint(PlayerInteractEvent.RightClickBlock event, PortalVariant variant) {

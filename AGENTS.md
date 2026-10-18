@@ -48,9 +48,10 @@ com.ejafi.egmd/
 │   ├── PortalMessages.java                # Translation key for the no-safe-location message
 │   ├── PortalVariant.java                 # Record of one portal: registry ID, EgmdDimension, frame block, default corner block, map color, tint color; derives the corner tag and corner hint key from the ID
 │   ├── PortalVariants.java                # The OVERWORLD_MINING, NETHER_MINING, END_MINING, and HAUNTED variants
-│   ├── DimensionPortalBlock.java          # The portal block: chooseRoute() and travel, pane shape, ambient sound and tinted sparks, collapse, fluid refusal
-│   ├── PortalFrame.java                   # Reads a frame and its corners through BlockGetter, validates its interior size, and fills it with portal blocks
-│   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for an interior rectangle
+│   ├── DimensionPortalBlock.java          # The portal block: chooseRoute() and travel, fill() for a frame interior, pane shape, ambient sound and tinted sparks, collapse, fluid refusal
+│   ├── PortalFrame.java                   # Record of a frame: its interior rectangle, measured east along X or south along Z from the lowest corner, and its axis
+│   ├── PortalFrameReader.java             # Finds a frame around a position through BlockGetter, validates its interior size, and reads its corners and portal blocks
+│   ├── PortalCorner.java                  # The four frame corners (LOW_BOTTOM, HIGH_BOTTOM, LOW_TOP, HIGH_TOP) and locateAll() for a PortalFrame
 │   ├── PortalCornerMaterials.java         # Judges corners against a Predicate<BlockState> and copies them, with a fallback block; create(variant) binds the corner tag
 │   ├── PortalIgnitionHandler.java         # RightClickBlock subscriber that lights an empty frame with valid corners; owns the egmd:portal_igniters tag key
 │   ├── ArrivalTarget.java                 # Where an exit portal goes: OnFlatSurface for flat terrain, or OnTerrain elsewhere
@@ -59,7 +60,7 @@ com.ejafi.egmd/
 │   ├── PortalSite.java                    # An Open site, or a Forced site whose exit cells must be cleared
 │   ├── PortalFootprint.java               # The frame, corner, portal, exit, and platform cells of a generated portal; judges canHost and canForce
 │   ├── PortalStructureBuilder.java        # Writes a portal, its frame with the given corner blocks, and its platform to a LevelWriter; clears the exit of a forced site
-│   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a portal rectangle
+│   ├── PortalExit.java                    # Arrival position and yaw in front of, behind, or inside a PortalFrame
 │   ├── PortalExitSelector.java            # Picks the first safe arrival for an entity: front, then back, else inside
 │   └── client/
 │       ├── PortalClient.java              # @Mod(dist = CLIENT): config screen, portal block tints, portal_spark particle provider
@@ -126,7 +127,7 @@ src/test/java/com/ejafi/egmd/
     ├── PortalCornerMaterialsTest.java
     ├── PortalExitTest.java
     ├── PortalFootprintTest.java
-    ├── PortalFrameTest.java
+    ├── PortalFrameReaderTest.java
     ├── PortalIgnitionHandlerTest.java
     ├── PortalPositionFinderTest.java
     └── PortalStructureBuilderTest.java
@@ -184,7 +185,7 @@ Each variant also names its corner tag, `egmd:<id>_corners`, its corner hint key
 
 The handler refuses spectators, a denied item use, a position the player may not build at (`mayUseItemAt`), and a frame whose portal would lead nowhere from the current dimension. It then collects the empty frames on the X axis and the Z axis, and lights the first whose four corners are all in the variant's corner tag.
 
-The corners are the cells diagonal to the interior rectangle, which `PortalFrame.readCorners()` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `isValid`, `isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
+The corners are the cells diagonal to the interior rectangle, which `PortalFrameReader.readCorners` reads and `PortalCornerMaterials.acceptsAll` judges. An infested corner counts as its host block. The corners matter only for lighting, since `PortalFrameReader.find`, `PortalFrameReader.isComplete`, and `DimensionPortalBlock.updateShape` never read them, so a lit portal stays lit without them.
 
 When an empty frame exists but none has valid corners, the handler leaves the click alone, so vanilla Flint and Steel places fire as usual. On the server, and only in the Overworld, the player also gets the variant's corner hint on the action bar. In Nether Mining and End Mining every tunnel through Netherrack or End Stone is a frame without corners, so the hint would fire constantly there.
 
@@ -208,7 +209,7 @@ When it lights a frame, the handler cancels the click on both sides so the clien
 
 ### Exit portal corners
 
-`getPortalDestination` reads the source portal's corners through `PortalFrame.readCorners()` at the source portal block, and `PortalCornerMaterials.copyAll` maps them onto the exit portal by `PortalCorner`. Bottom corners stay at the bottom and top corners at the top. The corner at the lower coordinate along the source portal's axis goes to the corner at the lower coordinate along the exit's axis, which is the same axis.
+`getPortalDestination` reads the source portal's corners through `PortalFrameReader` at the source portal block, and `PortalCornerMaterials.copyAll` maps them onto the exit portal by `PortalCorner`. Bottom corners stay at the bottom and top corners at the top. The corner at the lower coordinate along the source portal's axis goes to the corner at the lower coordinate along the exit's axis, which is the same axis.
 
 Each copied state is replaced by the default state of its infested host, and a block outside the corner tag is replaced by the variant's default corner. That keeps a player from swapping valuable blocks into the corners of a lit portal and having them duplicated on the other side. A `FallingBlock`, such as Sand or Gravel, is replaced by the default corner at the bottom corners only, since nothing checks what lies under the platform and it would fall. When the source frame cannot be read, all four corners use the default.
 

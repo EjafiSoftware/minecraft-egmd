@@ -204,7 +204,7 @@ public final class PortalGameTests {
         PortalVariant variant = pickVariant();
         createFrameBuilder(helper, variant)
                 .withCornerBlock(variant.defaultCornerBlock())
-                .build(locateInteriorAtOrigin(helper), Axis.X);
+                .build(locateFrameAtOrigin(helper, Axis.X));
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
@@ -214,7 +214,7 @@ public final class PortalGameTests {
 
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void on_right_click_block_leaves_frame_empty_when_corners_are_frame_blocks(GameTestHelper helper) {
-        createFrameBuilder(helper, pickVariant()).build(locateInteriorAtOrigin(helper), Axis.X);
+        createFrameBuilder(helper, pickVariant()).build(locateFrameAtOrigin(helper, Axis.X));
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
@@ -225,7 +225,7 @@ public final class PortalGameTests {
     @GameTest(template = GameTestTemplates.EMPTY_7X7X7)
     public static void on_right_click_block_leaves_vanilla_item_use_alone_when_corners_are_frame_blocks(
             GameTestHelper helper) {
-        createFrameBuilder(helper, pickVariant()).build(locateInteriorAtOrigin(helper), Axis.X);
+        createFrameBuilder(helper, pickVariant()).build(locateFrameAtOrigin(helper, Axis.X));
 
         PlayerInteractEvent.RightClickBlock event =
                 clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
@@ -243,7 +243,7 @@ public final class PortalGameTests {
                         PortalCorner.HIGH_BOTTOM, Blocks.STONE.defaultBlockState(),
                         PortalCorner.LOW_TOP, Blocks.MOSSY_COBBLESTONE.defaultBlockState(),
                         PortalCorner.HIGH_TOP, Blocks.GRANITE.defaultBlockState()))
-                .build(locateInteriorAtOrigin(helper), Axis.X);
+                .build(locateFrameAtOrigin(helper, Axis.X));
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
@@ -255,7 +255,7 @@ public final class PortalGameTests {
     public static void on_right_click_block_fills_frame_when_corners_are_infested_corner_blocks(GameTestHelper helper) {
         createFrameBuilder(helper, PortalVariants.NETHER_MINING)
                 .withCornerBlock(Blocks.INFESTED_STONE)
-                .build(locateInteriorAtOrigin(helper), Axis.X);
+                .build(locateFrameAtOrigin(helper, Axis.X));
 
         clickFrame(helper, makePlayerHoldingFlintAndSteel(helper, GameType.SURVIVAL));
 
@@ -547,8 +547,10 @@ public final class PortalGameTests {
                 new PlayerInteractEvent.RightClickBlock(player, InteractionHand.OFF_HAND, hit.getBlockPos(), hit));
     }
 
-    private static BlockUtil.FoundRectangle locateInteriorAtOrigin(GameTestHelper helper) {
-        return new BlockUtil.FoundRectangle(helper.absolutePos(ORIGIN), PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT);
+    private static PortalFrame locateFrameAtOrigin(GameTestHelper helper, Axis axis) {
+        return new PortalFrame(
+                new BlockUtil.FoundRectangle(helper.absolutePos(ORIGIN), PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT),
+                axis);
     }
 
     private static PortalFootprint locateFootprintAtOrigin(GameTestHelper helper, Axis axis) {
@@ -562,7 +564,7 @@ public final class PortalGameTests {
     private static void buildFrameAroundOrigin(GameTestHelper helper) {
         createFrameBuilder(helper, PortalVariants.OVERWORLD_MINING)
                 .withCornerBlock(PortalVariants.OVERWORLD_MINING.defaultCornerBlock())
-                .build(locateInteriorAtOrigin(helper), Axis.X);
+                .build(locateFrameAtOrigin(helper, Axis.X));
     }
 
     private static void buildOpenPortalAtOrigin(GameTestHelper helper, Axis axis) {
@@ -579,7 +581,7 @@ public final class PortalGameTests {
 
     private static PortalExit selectExitAtOrigin(GameTestHelper helper) {
         return new PortalExitSelector(helper.getLevel(), helper.makeMockPlayer(GameType.SURVIVAL))
-                .select(locateInteriorAtOrigin(helper), Axis.X);
+                .select(locateFrameAtOrigin(helper, Axis.X));
     }
 
     private static BlockState getFrameState() {

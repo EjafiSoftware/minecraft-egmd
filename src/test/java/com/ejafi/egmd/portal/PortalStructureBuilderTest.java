@@ -52,6 +52,9 @@ class PortalStructureBuilderTest {
     }
 
     private Map<PortalCorner, BlockState> readCorners(PortalFootprint footprint) {
-        return new PortalFrame(level, footprint.origin(), footprint.axis(), portalBlock).readCorners();
+        var reader = new PortalFrameReader(level, portalBlock);
+        return reader.find(footprint.origin(), footprint.axis())
+                .map(reader::readCorners)
+                .orElse(Map.of());
     }
 }

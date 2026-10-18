@@ -49,6 +49,6 @@ final class PortalCornerMaterials {
     }
 
     private static BlockState resolveHost(BlockState state) {
-        return PortalFrame.resolveInfestedHost(state).defaultBlockState();
+        return PortalFrameReader.resolveInfestedHost(state).defaultBlockState();
     }
 }

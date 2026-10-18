@@ -24,9 +24,9 @@ final class ExitPortalFinder {
         this.portalBlock = PortalRegisters.getPortalBlock(variant).get();
     }
 
-    Optional<BlockUtil.FoundRectangle> findOrCreate(ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
+    Optional<PortalFrame> findOrCreate(ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
         return findPortalAround(target.footprint().origin())
-                .map(this::findRectangleAround)
+                .map(this::findFrameAround)
                 .or(() -> createPortal(target, corners));
     }
 
@@ -48,24 +48,24 @@ final class ExitPortalFinder {
                 / level.dimensionType().coordinateScale()));
     }
 
-    private BlockUtil.FoundRectangle findRectangleAround(BlockPos portalPos) {
+    private PortalFrame findFrameAround(BlockPos portalPos) {
         BlockState state = level.getBlockState(portalPos);
-        return BlockUtil.getLargestRectangleAround(
+        Axis axis = state.getValue(DimensionPortalBlock.AXIS);
+        BlockUtil.FoundRectangle interior = BlockUtil.getLargestRectangleAround(
                 portalPos,
-                state.getValue(DimensionPortalBlock.AXIS),
+                axis,
                 PortalFrame.MAX_WIDTH,
                 Axis.Y,
                 PortalFrame.MAX_HEIGHT,
                 pos -> level.getBlockState(pos).equals(state));
+        return new PortalFrame(interior, axis);
     }
 
-    private Optional<BlockUtil.FoundRectangle> createPortal(
-            ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
+    private Optional<PortalFrame> createPortal(ArrivalTarget target, Map<PortalCorner, BlockState> corners) {
         var builder = new PortalStructureBuilder(portalBlock, corners);
         return PortalPositionFinder.find(level, target).map(site -> {
             builder.build(level, site);
-            return new BlockUtil.FoundRectangle(
-                    site.footprint().origin(), PortalFrame.MIN_WIDTH, PortalFrame.MIN_HEIGHT);
+            return site.footprint().locateFrame();
         });
     }
 }

@@ -1,10 +1,8 @@
 package com.ejafi.egmd.portal;
 
 import java.util.List;
-import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Axis;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -22,15 +20,14 @@ final class PortalExitSelector {
         this.dimensions = entity.getDimensions(entity.getPose());
     }
 
-    PortalExit select(BlockUtil.FoundRectangle rectangle, Axis axis) {
-        for (PortalExit candidate :
-                List.of(PortalExit.computeFront(rectangle, axis), PortalExit.computeBack(rectangle, axis))) {
+    PortalExit select(PortalFrame frame) {
+        for (PortalExit candidate : List.of(PortalExit.computeFront(frame), PortalExit.computeBack(frame))) {
             if (isSafeArrival(candidate.position())) {
                 return candidate;
             }
         }
 
-        PortalExit inside = PortalExit.computeInside(rectangle, axis);
+        PortalExit inside = PortalExit.computeInside(frame);
         return new PortalExit(
                 PortalShape.findCollisionFreePosition(inside.position(), level, entity, dimensions), inside.yRot());
     }
